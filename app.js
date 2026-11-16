@@ -1,16 +1,16 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "budgetflow_state_v1";
+  const STORAGE_KEY = "budgetflow_experience_v2";
 
   const CURRENCIES = {
-    USD: { symbol: "$", code: "USD", decimals: 0 },
-    EUR: { symbol: "€", code: "EUR", decimals: 0 },
-    MXN: { symbol: "$", code: "MXN", decimals: 0 },
-    COP: { symbol: "$", code: "COP", decimals: 0 },
-    ARS: { symbol: "$", code: "ARS", decimals: 0 },
-    CLP: { symbol: "$", code: "CLP", decimals: 0 },
-    PEN: { symbol: "S/", code: "PEN", decimals: 0 },
+    USD: { symbol: "$", code: "USD" },
+    EUR: { symbol: "€", code: "EUR" },
+    MXN: { symbol: "$", code: "MXN" },
+    COP: { symbol: "$", code: "COP" },
+    ARS: { symbol: "$", code: "ARS" },
+    CLP: { symbol: "$", code: "CLP" },
+    PEN: { symbol: "S/", code: "PEN" },
   };
 
   const PERIOD_FACTORS = {
@@ -24,71 +24,76 @@
     "50-30-20": {
       id: "50-30-20",
       name: "Regla 50 / 30 / 20",
-      tagline: "Equilibrio clásico",
+      short: "50 / 30 / 20",
+      tagline: "Equilibrio clásico sostenible",
       targets: { needs: 50, wants: 30, savings: 20 },
       whySummary:
-        "Popularizada por la profesora de finanzas Elizabeth Warren, la regla 50/30/20 divide tu ingreso neto en tres grandes bloques fáciles de sostener a largo plazo sin necesidad de rastrear cada centavo.",
+        "Popularizada por Elizabeth Warren, divide tu ingreso neto en tres bloques simples para cuidar tu presente y tu futuro sin obsesionarte con cada centavo.",
       whyDetails: [
-        "El 50% cubre tu base vital (vivienda, comida, servicios y transporte) para mantener tus compromisos fijos bajo control.",
-        "El 30% protege tu calidad de vida (ocio, salidas, hobbies), evitando el agotamiento financiero que hace fracasar a los presupuestos demasiado estrictos.",
-        "El 20% se aparta primero para tu futuro: fondo de emergencia, retiro, inversiones o pago acelerado de deudas.",
+        "50% para necesidades vitales (vivienda, comida, servicios y transporte).",
+        "30% para estilo de vida y disfrute, evitando la fatiga de presupuestos extremos.",
+        "20% apartado primero para fondo de emergencia, inversión o metas.",
       ],
-      bestFor: "Personas con ingresos estables que buscan un balance sano entre disfrutar el presente y construir patrimonio.",
-    },
-    "70-20-10": {
-      id: "70-20-10",
-      name: "Regla 70 / 20 / 10",
-      tagline: "Estabilidad & reducción de deudas",
-      targets: { needs: 70, wants: 20, savings: 10 },
-      whySummary:
-        "Diseñada para etapas donde el costo de vida esencial es alto (ciudades costosas, familia o deudas activas) y necesitas margen realista para cubrir lo básico sin caer en atrasos.",
-      whyDetails: [
-        "El 70% reconoce que tus gastos esenciales o compromisos mínimos ocupan la mayor parte del ingreso actual.",
-        "El 20% conserva un espacio moderado para bienestar y gastos personales sin culpa.",
-        "El 10% garantiza que, incluso en meses ajustados, el hábito del ahorro o amortización de deuda nunca se detenga.",
-      ],
-      bestFor: "Quienes viven en zonas de renta elevada, están saliendo de deudas o inician su carrera profesional.",
+      bestFor: "Ingresos estables que buscan armonía entre bienestar actual y ahorro constante.",
     },
     "60-20-20": {
       id: "60-20-20",
       name: "Regla 60 / 20 / 20",
-      tagline: "Fijos controlados y ahorro sólido",
+      short: "60 / 20 / 20",
+      tagline: "Fijos controlados + ahorro firme",
       targets: { needs: 60, wants: 20, savings: 20 },
       whySummary:
-        "Un punto intermedio muy práctico cuando tus gastos básicos superan el 50%, pero no quieres sacrificar la meta recomendada de ahorrar al menos el 20% de tus ingresos.",
+        "Ideal cuando el costo de vida esencial supera la mitad de tus ingresos, pero quieres proteger intacta la meta saludable del 20% de ahorro.",
       whyDetails: [
-        "Amplía el margen de necesidades al 60% para absorber vivienda y alimentación sin presión excesiva.",
-        "Limita los deseos al 20%, priorizando solo lo que realmente aporta valor a tu semana.",
-        "Mantiene intacto el 20% de ahorro e inversión, preservando tu velocidad de crecimiento financiero.",
+        "Amplía el margen fijo al 60% para absorber renta y alimentación sin estrés.",
+        "Acota los deseos al 20%, enfocándote solo en lo que de verdad valoras.",
+        "Preserva el 20% íntegro para construir patrimonio y colchón financiero.",
       ],
-      bestFor: "Hogares con costos fijos moderados-altos que desean mantener una tasa de ahorro disciplinada del 20%.",
+      bestFor: "Ciudades de costo medio-alto o familias que no quieren sacrificar su ahorro.",
+    },
+    "70-20-10": {
+      id: "70-20-10",
+      name: "Regla 70 / 20 / 10",
+      short: "70 / 20 / 10",
+      tagline: "Estabilidad en etapas exigentes",
+      targets: { needs: 70, wants: 20, savings: 10 },
+      whySummary:
+        "Pensada para momentos donde tus compromisos básicos son altos o estás pagando deudas, permitiéndote respirar sin abandonar el hábito del ahorro.",
+      whyDetails: [
+        "70% reconoce tus obligaciones esenciales reales sin metas irreales.",
+        "20% mantiene un margen moderado para bienestar personal.",
+        "10% asegura que cada periodo sigas sumando reserva o bajando deuda.",
+      ],
+      bestFor: "Quienes inician carrera, viven en zonas caras o salen de compromisos financieros.",
     },
     "zero-based": {
       id: "zero-based",
-      name: "Plan 45 / 25 / 30 (Ahorro Acelerado)",
-      tagline: "Crecimiento patrimonial rápido",
+      name: "Plan 45 / 25 / 30",
+      short: "45 / 25 / 30",
+      tagline: "Ahorro e inversión acelerados",
       targets: { needs: 45, wants: 25, savings: 30 },
       whySummary:
-        "Este esquema prioriza la libertad financiera temprana comprimiendo los gastos fijos por debajo del 45% para liberar casi un tercio del ingreso hacia inversión, metas grandes o independencia.",
+        "Comprime los gastos fijos por debajo del 45% para liberar casi un tercio de todo lo que ganas hacia metas grandes, inversión o independencia.",
       whyDetails: [
-        "Mantener necesidades bajo el 45% te vuelve resiliente ante imprevistos o cambios laborales.",
-        "El 25% permite disfrutar con intención, evitando compras impulsivas.",
-        "Destinar el 30% a ahorro e inversión acelera drásticamente metas como comprar vivienda, emprender o invertir.",
+        "Costos fijos bajos (<45%) te vuelven muy resistente ante imprevistos.",
+        "25% permite disfrutar de forma intencional y consciente.",
+        "30% de ahorro multiplica tu ritmo de crecimiento año tras año.",
       ],
-      bestFor: "Personas con margen de ahorro alto que desean construir un fondo sólido o acelerar inversiones.",
+      bestFor: "Personas enfocadas en comprar vivienda, invertir fuerte o crear libertad financiera.",
     },
     custom: {
       id: "custom",
-      name: "Distribución Personalizada",
-      tagline: "Adaptada a tu realidad",
+      name: "Distribución a tu medida",
+      short: "Libre",
+      tagline: "Personaliza cada porcentaje",
       targets: null,
       whySummary:
-        "Un presupuesto personalizado adapta los porcentajes a tu contexto específico (metas a corto plazo, ingresos variables o proyectos puntuales) en lugar de forzar una fórmula genérica.",
+        "Adapta las proporciones exactamente a tu momento de vida, ingresos variables o proyecto puntual antes de optimizar paso a paso.",
       whyDetails: [
-        "Te permite asignar exactamente cuánto necesitas en cada bloque según tus compromisos reales de este periodo.",
-        "Sirve como punto de partida honesto: primero ves dónde estás hoy y luego decides qué porcentaje mover gradualmente.",
+        "Parte de tus números reales actuales sin restricciones rígidas.",
+        "En el siguiente paso podrás mover cualquier barra y ver el impacto al instante.",
       ],
-      bestFor: "Ingresos variables, metas puntuales (viaje, estudios, negocio) o ajustes finos mes a mes.",
+      bestFor: "Trabajadores independientes, metas temporales o ajustes finos mes a mes.",
     },
   };
 
@@ -96,7 +101,7 @@
     {
       id: "needs",
       name: "Necesidades esenciales",
-      description: "Vivienda, alimentación básica, servicios, salud y transporte indispensable.",
+      description: "Vivienda, alimentación, servicios, salud y transporte básico.",
       color: "#0F766E",
       percent: 50,
       expanded: false,
@@ -109,7 +114,7 @@
     {
       id: "wants",
       name: "Estilo de vida y deseos",
-      description: "Restaurantes, entretenimiento, suscripciones, viajes y compras opcionales.",
+      description: "Salidas, suscripciones, hobbies y compras opcionales.",
       color: "#D97706",
       percent: 30,
       expanded: false,
@@ -122,7 +127,7 @@
     {
       id: "savings",
       name: "Ahorro, inversión y metas",
-      description: "Fondo de emergencia, inversión a largo plazo, retiro o abono extra a deudas.",
+      description: "Fondo de emergencia, inversión, retiro o abono extra a deudas.",
       color: "#2563EB",
       percent: 20,
       expanded: false,
@@ -133,45 +138,57 @@
     },
   ];
 
-  // Estado principal
   let state = loadState();
   let focusedCategoryId = null;
 
-  // Referencias DOM
   const els = {
+    stepper: document.getElementById("stepper"),
+    progressFill: document.getElementById("progress-fill"),
+    btnHomeBrand: document.getElementById("btn-home-brand"),
+    btnReset: document.getElementById("btn-reset"),
+    scenes: document.querySelectorAll(".scene"),
+
+    // Escena 1
     incomeInput: document.getElementById("income-input"),
-    currencyPrefix: document.getElementById("currency-prefix"),
-    currencySelect: document.getElementById("currency-select"),
+    s1CurrencySymbol: document.getElementById("s1-currency-symbol"),
     periodSelect: document.getElementById("period-select"),
-    strategyPills: document.getElementById("strategy-pills"),
+    currencySelect: document.getElementById("currency-select"),
+    s1Callout: document.getElementById("s1-callout"),
+    btnS1Next: document.getElementById("btn-s1-next"),
+
+    // Escena 2
+    strategyGrid: document.getElementById("strategy-grid"),
+    strategySpotlight: document.getElementById("strategy-spotlight"),
+    btnS2Next: document.getElementById("btn-s2-next"),
+
+    // Escena 3
+    s3StrategyBadge: document.getElementById("s3-strategy-badge"),
+    autobalanceCheckbox: document.getElementById("autobalance-checkbox"),
     donutSegments: document.getElementById("donut-segments"),
-    chartCenterReadout: document.getElementById("chart-center-readout"),
     centerLabel: document.getElementById("center-label"),
     centerAmount: document.getElementById("center-amount"),
     centerStatus: document.getElementById("center-status"),
     centerSubnote: document.getElementById("center-subnote"),
     chartTooltip: document.getElementById("chart-tooltip"),
-    chartLegend: document.getElementById("chart-legend"),
-    autobalanceCheckbox: document.getElementById("autobalance-checkbox"),
-    categoriesStack: document.getElementById("categories-stack"),
-    liveWhyContent: document.getElementById("live-why-content"),
-    liveImproveContent: document.getElementById("live-improve-content"),
-    healthScoreBadge: document.getElementById("health-score-badge"),
-    scoreNumber: document.getElementById("score-number"),
-    projectionBanner: document.getElementById("projection-banner"),
-    btnReset: document.getElementById("btn-reset"),
-    btnOpenReport: document.getElementById("btn-open-report"),
-    btnPreviewReport: document.getElementById("btn-preview-report"),
-    btnDirectPrint: document.getElementById("btn-direct-print"),
-    reportModal: document.getElementById("report-modal"),
-    btnCloseReport: document.getElementById("btn-close-report"),
-    btnModalPrint: document.getElementById("btn-modal-print"),
+    minimalSlidersList: document.getElementById("minimal-sliders-list"),
+    s3LiveFeedback: document.getElementById("s3-live-feedback"),
+    btnS3Next: document.getElementById("btn-s3-next"),
+
+    // Escena 4
+    s4DiagnosisContent: document.getElementById("s4-diagnosis-content"),
+    btnS4Next: document.getElementById("btn-s4-next"),
+
+    // Escena 5
     reportOwnerInput: document.getElementById("report-owner-input"),
+    btnPrintNow: document.getElementById("btn-print-now"),
+    docPreviewFrame: document.getElementById("doc-preview-frame"),
     printableDocument: document.getElementById("printable-document"),
   };
 
   function cloneDefaults() {
     return {
+      currentStep: 1,
+      unlockedStep: 1,
       income: 2400,
       currency: "USD",
       period: "mensual",
@@ -190,7 +207,11 @@
       if (!parsed || !Array.isArray(parsed.categories) || parsed.categories.length !== 3) {
         return cloneDefaults();
       }
+      const unlocked = Math.max(1, Math.min(5, Number(parsed.unlockedStep) || 1));
+      const current = Math.max(1, Math.min(unlocked, Number(parsed.currentStep) || 1));
       return {
+        currentStep: current,
+        unlockedStep: unlocked,
         income: Number.isFinite(Number(parsed.income)) ? Math.max(0, Number(parsed.income)) : 2400,
         currency: CURRENCIES[parsed.currency] ? parsed.currency : "USD",
         period: PERIOD_FACTORS[parsed.period] ? parsed.period : "mensual",
@@ -242,54 +263,178 @@
     return state.categories.reduce((sum, c) => sum + c.percent, 0);
   }
 
-  // =========================================================================
-  // Lógica de Auto-Balanceo al 100%
-  // =========================================================================
-
-  function setCategoryPercent(catId, newPercent) {
-    const clamped = Math.max(0, Math.min(100, Math.round(newPercent)));
-    const targetCat = state.categories.find((c) => c.id === catId);
-    if (!targetCat) return;
-
-    if (!state.autoBalance) {
-      targetCat.percent = clamped;
-      detectStrategyMatch();
-      saveState();
-      renderAll();
-      return;
+  function animateValue(el, start, end, duration = 450, formatter = (v) => String(Math.round(v))) {
+    if (!el) return;
+    const startTime = performance.now();
+    function frame(now) {
+      const progress = Math.min(1, (now - startTime) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = formatter(start + (end - start) * eased);
+      if (progress < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        el.textContent = formatter(end);
+      }
     }
+    requestAnimationFrame(frame);
+  }
 
-    const others = state.categories.filter((c) => c.id !== catId);
-    const remaining = 100 - clamped;
-    const othersCurrentSum = others.reduce((sum, c) => sum + c.percent, 0);
+  // =========================================================================
+  // Navegación entre Escenas y Desbloqueo Progresivo
+  // =========================================================================
 
-    targetCat.percent = clamped;
+  function goToStep(step, directionOverride = null, skipAnim = false) {
+    const target = Math.max(1, Math.min(5, step));
+    if (target > state.unlockedStep) return;
 
-    if (othersCurrentSum === 0) {
-      // Repartir equitativamente el restante
-      const base = Math.floor(remaining / others.length);
-      let rem = remaining - base * others.length;
-      others.forEach((c) => {
-        c.percent = base + (rem > 0 ? 1 : 0);
-        if (rem > 0) rem--;
-      });
-    } else {
-      // Repartir proporcionalmente manteniendo la suma exacta en 100
-      let allocated = 0;
-      others.forEach((c, idx) => {
-        if (idx === others.length - 1) {
-          c.percent = Math.max(0, remaining - allocated);
-        } else {
-          const share = Math.round((c.percent / othersCurrentSum) * remaining);
-          c.percent = Math.max(0, Math.min(remaining - allocated, share));
-          allocated += c.percent;
-        }
-      });
-    }
-
-    detectStrategyMatch();
+    const prev = state.currentStep;
+    const direction = directionOverride || (target >= prev ? "forward" : "backward");
+    state.currentStep = target;
     saveState();
-    renderAll();
+
+    els.scenes.forEach((sec) => {
+      const sceneNum = Number(sec.getAttribute("data-scene"));
+      sec.classList.remove("anim-forward", "anim-backward", "is-active");
+      if (sceneNum === target) {
+        sec.hidden = false;
+        if (!skipAnim) {
+          void sec.offsetWidth;
+          sec.classList.add(direction === "forward" ? "anim-forward" : "anim-backward");
+        }
+        sec.classList.add("is-active");
+      } else {
+        sec.hidden = true;
+      }
+    });
+
+    renderStepper();
+    renderCurrentScene(!skipAnim);
+    window.scrollTo({ top: 0, behavior: skipAnim ? "auto" : "smooth" });
+  }
+
+  function unlockAndGo(nextStep) {
+    state.unlockedStep = Math.max(state.unlockedStep, Math.min(5, nextStep));
+    goToStep(nextStep, "forward");
+  }
+
+  function renderStepper() {
+    els.progressFill.style.width = `${(state.currentStep / 5) * 100}%`;
+    els.stepper.querySelectorAll(".step-item").forEach((btn) => {
+      const stepNum = Number(btn.getAttribute("data-step"));
+      const isUnlocked = stepNum <= state.unlockedStep;
+      const isActive = stepNum === state.currentStep;
+      const isCompleted = stepNum < state.currentStep;
+
+      btn.disabled = !isUnlocked;
+      btn.classList.toggle("is-unlocked", isUnlocked);
+      btn.classList.toggle("is-locked", !isUnlocked);
+      btn.classList.toggle("is-active", isActive);
+      btn.classList.toggle("is-completed", isCompleted);
+    });
+  }
+
+  // =========================================================================
+  // Escena 1: Ingreso
+  // =========================================================================
+
+  function renderScene1() {
+    const cur = CURRENCIES[state.currency] || CURRENCIES.USD;
+    els.s1CurrencySymbol.textContent = cur.symbol;
+    els.periodSelect.value = state.period;
+    els.currencySelect.value = state.currency;
+    if (document.activeElement !== els.incomeInput) {
+      els.incomeInput.value = state.income;
+    }
+
+    const perYear = PERIOD_FACTORS[state.period].perYear;
+    const annualIncome = state.income * perYear;
+    const sampleSave = Math.round(annualIncome * 0.2);
+
+    if (state.income > 0) {
+      els.s1Callout.innerHTML = `
+        Tu ingreso equivale a <strong>${formatMoney(annualIncome, true)} al año</strong>.
+        Con una estrategia equilibrada del 20%, podrías acumular <strong>${formatMoney(sampleSave)} cada año</strong>.
+      `;
+    } else {
+      els.s1Callout.innerHTML = `Escribe un monto mayor a cero para comenzar a modelar tu presupuesto.`;
+    }
+  }
+
+  // =========================================================================
+  // Escena 2: Estrategia & Educación
+  // =========================================================================
+
+  function renderScene2() {
+    els.strategyGrid.innerHTML = Object.values(STRATEGIES)
+      .map((s) => {
+        const selected = s.id === state.strategy;
+        return `
+          <button type="button" class="strategy-card ${selected ? "is-selected" : ""}" data-strategy="${s.id}" role="radio" aria-checked="${selected ? "true" : "false"}">
+            <div class="strategy-card-main">
+              <strong>${escapeHtml(s.name)}</strong>
+              <span>${escapeHtml(s.tagline)}</span>
+            </div>
+            <span class="strategy-ratio-dots">${escapeHtml(s.short)}</span>
+          </button>
+        `;
+      })
+      .join("");
+
+    els.strategyGrid.querySelectorAll(".strategy-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        applyStrategy(card.getAttribute("data-strategy"));
+        renderScene2();
+      });
+    });
+
+    const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
+    const ringPercentages = strat.targets || {
+      needs: state.categories[0].percent,
+      wants: state.categories[1].percent,
+      savings: state.categories[2].percent,
+    };
+
+    const r = 30;
+    const circ = 2 * Math.PI * r;
+    const segData = [
+      { color: "#0F766E", pct: ringPercentages.needs },
+      { color: "#D97706", pct: ringPercentages.wants },
+      { color: "#2563EB", pct: ringPercentages.savings },
+    ];
+    let offset = 0;
+    const circles = segData
+      .map((seg) => {
+        const len = (seg.pct / 100) * circ;
+        const gap = Math.max(0, circ - len);
+        const dashOffset = -offset;
+        offset += len;
+        return `<circle cx="40" cy="40" r="${r}" fill="none" stroke="${seg.color}" stroke-width="11" stroke-dasharray="${len.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${dashOffset.toFixed(2)}" />`;
+      })
+      .join("");
+
+    els.strategySpotlight.innerHTML = `
+      <div>
+        <div class="spotlight-head">
+          <div class="spotlight-ring-box" aria-hidden="true">
+            <svg viewBox="0 0 80 80" width="76" height="76" style="transform: rotate(-90deg);">
+              <circle cx="40" cy="40" r="${r}" fill="none" stroke="#efece4" stroke-width="11" />
+              ${circles}
+            </svg>
+          </div>
+          <div>
+            <span class="spotlight-kicker">¿Por qué funciona?</span>
+            <h3 class="spotlight-title">${escapeHtml(strat.name)}</h3>
+          </div>
+        </div>
+        <p class="spotlight-summary" style="margin-top:14px;">${escapeHtml(strat.whySummary)}</p>
+        <ul class="spotlight-bullets" style="margin-top:10px;">
+          ${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}
+        </ul>
+      </div>
+      <div class="spotlight-bestfor">
+        <strong>Ideal para:</strong> ${escapeHtml(strat.bestFor)}
+      </div>
+    `;
   }
 
   function applyStrategy(strategyId) {
@@ -304,7 +449,53 @@
       });
     }
     saveState();
-    renderAll();
+  }
+
+  // =========================================================================
+  // Escena 3: El Centro Vivo (Gráfico Grande + Sliders Minimalistas)
+  // =========================================================================
+
+  function setCategoryPercent(catId, newPercent) {
+    const clamped = Math.max(0, Math.min(100, Math.round(newPercent)));
+    const targetCat = state.categories.find((c) => c.id === catId);
+    if (!targetCat) return;
+
+    if (!state.autoBalance) {
+      targetCat.percent = clamped;
+      detectStrategyMatch();
+      saveState();
+      renderScene3();
+      return;
+    }
+
+    const others = state.categories.filter((c) => c.id !== catId);
+    const remaining = 100 - clamped;
+    const othersCurrentSum = others.reduce((sum, c) => sum + c.percent, 0);
+    targetCat.percent = clamped;
+
+    if (othersCurrentSum === 0) {
+      const base = Math.floor(remaining / others.length);
+      let rem = remaining - base * others.length;
+      others.forEach((c) => {
+        c.percent = base + (rem > 0 ? 1 : 0);
+        if (rem > 0) rem--;
+      });
+    } else {
+      let allocated = 0;
+      others.forEach((c, idx) => {
+        if (idx === others.length - 1) {
+          c.percent = Math.max(0, remaining - allocated);
+        } else {
+          const share = Math.round((c.percent / othersCurrentSum) * remaining);
+          c.percent = Math.max(0, Math.min(remaining - allocated, share));
+          allocated += c.percent;
+        }
+      });
+    }
+
+    detectStrategyMatch();
+    saveState();
+    renderScene3();
   }
 
   function detectStrategyMatch() {
@@ -312,7 +503,6 @@
     state.categories.forEach((c) => {
       map[c.id] = c.percent;
     });
-
     const matched = Object.values(STRATEGIES).find((s) => {
       if (!s.targets) return false;
       return (
@@ -321,190 +511,8 @@
         s.targets.savings === map.savings
       );
     });
-
     state.strategy = matched ? matched.id : "custom";
   }
-
-  // =========================================================================
-  // Motor de Diagnóstico Financiero ("Por qué" & "Qué se puede mejorar")
-  // =========================================================================
-
-  function analyzeBudget() {
-    const needs = state.categories.find((c) => c.id === "needs")?.percent || 0;
-    const wants = state.categories.find((c) => c.id === "wants")?.percent || 0;
-    const savings = state.categories.find((c) => c.id === "savings")?.percent || 0;
-    const totalPct = needs + wants + savings;
-    const diffPct = 100 - totalPct;
-    const diffAmount = Math.round((state.income * diffPct) / 100);
-
-    const savingsAmount = Math.round((state.income * savings) / 100);
-    const needsAmount = Math.round((state.income * needs) / 100);
-    const perYear = PERIOD_FACTORS[state.period].perYear;
-    const annualSavings = savingsAmount * perYear;
-    const annualIncome = state.income * perYear;
-
-    // Meses para juntar 3 meses de necesidades esenciales
-    const emergencyTarget = needsAmount * 3;
-    const periodsToEmergency = savingsAmount > 0 ? Math.ceil(emergencyTarget / savingsAmount) : null;
-
-    // Puntuación 0-100
-    let score = 78;
-    const strengths = [];
-    const improvements = [];
-    const actionSteps = [];
-
-    if (state.income <= 0) {
-      score = 0;
-      improvements.push({
-        level: "alert",
-        tag: "Ingreso en cero",
-        text: "Introduce tu ingreso neto para calcular montos reales y recomendaciones precisas.",
-      });
-    } else {
-      // Evaluación de ahorro
-      if (savings >= 25) {
-        score += 18;
-        strengths.push(
-          `Excelente tasa de ahorro (${savings}%). Acumularás ${formatMoney(annualSavings)} al año.`
-        );
-      } else if (savings >= 20) {
-        score += 12;
-        strengths.push(
-          `Cumples con el estándar saludable del ${savings}% de ahorro (${formatMoney(annualSavings)} al año).`
-        );
-      } else if (savings >= 10) {
-        score += 2;
-        improvements.push({
-          level: "warn",
-          tag: "Ahorro moderado",
-          text: `Tu ahorro es del ${savings}%. Subirlo al menos al 20% (${formatMoney(state.income * 0.2)} por periodo) aceleraría tu estabilidad.`,
-        });
-        actionSteps.push(
-          `Programa una transferencia automática del ${savings}% nada más recibir tu ingreso y busca elevarla 2% cada trimestre hasta llegar al 20%.`
-        );
-      } else {
-        score -= 22;
-        improvements.push({
-          level: "alert",
-          tag: "Ahorro crítico",
-          text: `Destinas solo ${savings}% al ahorro. Sin un colchón mínimo, cualquier imprevisto te obligará a endeudarte.`,
-        });
-        actionSteps.push(
-          `Recorta al menos un 5% de gastos opcionales (${formatMoney(state.income * 0.05)}) para iniciar un fondo de emergencia intocable.`
-        );
-      }
-
-      // Evaluación de necesidades
-      if (needs <= 50) {
-        score += 6;
-        strengths.push(
-          `Tus gastos esenciales (${needs}%) están por debajo del límite recomendado del 50%, dándote gran flexibilidad.`
-        );
-      } else if (needs <= 65) {
-        improvements.push({
-          level: "warn",
-          tag: "Fijos moderados-altos",
-          text: `Tus necesidades ocupan el ${needs}%. Revisa si vivienda, planes telefónicos o transporte pueden optimizarse un 5%.`,
-        });
-        actionSteps.push(
-          `Audita tus 3 gastos fijos más altos (renta, servicios, alimentación) para recuperar ${formatMoney(state.income * 0.05)} hacia tus metas.`
-        );
-      } else {
-        score -= 16;
-        improvements.push({
-          level: "alert",
-          tag: "Sobrecarga fija",
-          text: `El ${needs}% en necesidades deja poco oxígeno ante emergencias o inflación.`,
-        });
-        actionSteps.push(
-          `Evita adquirir nuevos pagos fijos o cuotas hasta bajar tus necesidades esenciales por debajo del 60%.`
-        );
-      }
-
-      // Evaluación de deseos
-      if (wants > 35) {
-        score -= 12;
-        improvements.push({
-          level: "warn",
-          tag: "Estilo de vida elevado",
-          text: `Tus deseos representan el ${wants}% (${formatMoney((state.income * wants) / 100)}). Reducir 5 puntos en ocio o suscripciones mejoraría tu flujo de ahorro.`,
-        });
-        actionSteps.push(
-          `Revisa suscripciones recurrentes y fija un tope semanal en efectivo o tarjeta prepaga para salidas.`
-        );
-      } else if (wants >= 15 && wants <= 30) {
-        strengths.push(
-          `Asignación equilibrada en estilo de vida (${wants}%), suficiente para disfrutar sin desbalancear tu futuro.`
-        );
-      } else if (wants < 10) {
-        improvements.push({
-          level: "warn",
-          tag: "Margen muy estricto",
-          text: `Un ${wants}% en ocio puede volverse difícil de sostener varios meses seguidos. Permite un pequeño margen de disfrute realista.`,
-        });
-      }
-
-      // Evaluación de balance total (cuando auto-balance está desactivado)
-      if (diffPct < 0) {
-        score -= 20;
-        improvements.push({
-          level: "alert",
-          tag: "Déficit proyectado",
-          text: `Estás asignando ${totalPct}% del ingreso (exceso de ${formatMoney(Math.abs(diffAmount))}). Este presupuesto genera deuda si no ajustas.`,
-        });
-        actionSteps.unshift(
-          `Elimina ${formatMoney(Math.abs(diffAmount))} de tus categorías hoy mismo para regresar al 100% de tu ingreso real.`
-        );
-      } else if (diffPct > 0) {
-        score -= 4;
-        improvements.push({
-          level: "warn",
-          tag: "Dinero sin asignar",
-          text: `Tienes un ${diffPct}% (${formatMoney(diffAmount)}) libre sin destino. El dinero sin etiqueta suele gastarse por impulso.`,
-        });
-        actionSteps.push(
-          `Asigna ese ${diffPct}% sobrante (${formatMoney(diffAmount)}) directamente a ahorro o inversión para completar el 100%.`
-        );
-      }
-    }
-
-    // Asegurar al menos 3 pasos concretos
-    if (actionSteps.length < 3) {
-      if (periodsToEmergency !== null && savingsAmount > 0) {
-        actionSteps.push(
-          `Mantén este ritmo de ${formatMoney(savingsAmount)} por periodo para completar un fondo de emergencia de 3 meses de gastos esenciales (${formatMoney(emergencyTarget)}) en aproximadamente ${periodsToEmergency} ${state.period === "anual" ? "años" : "periodos"}.`
-        );
-      }
-      actionSteps.push(
-        `Revisa este presupuesto el primer día de cada mes y compara tus gastos reales frente a los porcentajes objetivo.`
-      );
-    }
-
-    score = Math.max(0, Math.min(100, Math.round(score)));
-
-    return {
-      needs,
-      wants,
-      savings,
-      totalPct,
-      diffPct,
-      diffAmount,
-      savingsAmount,
-      needsAmount,
-      annualSavings,
-      annualIncome,
-      emergencyTarget,
-      periodsToEmergency,
-      score,
-      strengths,
-      improvements,
-      actionSteps: actionSteps.slice(0, 4),
-    };
-  }
-
-  // =========================================================================
-  // Renderizado del Gráfico SVG Céntrico (actualización en sitio para animar)
-  // =========================================================================
 
   function getDonutMetrics(radius) {
     const circumference = 2 * Math.PI * radius;
@@ -558,7 +566,6 @@
     if (!els.donutSegments.querySelector(".donut-segment")) {
       mountChart();
     }
-
     const metrics = getDonutMetrics(154);
     metrics.forEach(({ cat, dashArray, dashOffset }) => {
       const seg = els.donutSegments.querySelector(`.donut-segment[data-cat-id="${cat.id}"]`);
@@ -568,9 +575,7 @@
       seg.classList.toggle("is-focused", focusedCategoryId === cat.id);
       seg.classList.toggle("is-dimmed", Boolean(focusedCategoryId && focusedCategoryId !== cat.id));
     });
-
     updateCenterReadout();
-    renderLegend();
   }
 
   function updateCenterReadout(hoverCatId = null) {
@@ -583,31 +588,30 @@
       els.centerStatus.textContent = `${activeCat.percent}% del ingreso`;
       els.centerStatus.className = "center-status status-balanced";
       els.centerSubnote.textContent = focusedCategoryId
-        ? "Clic en el segmento para volver al total"
-        : "Haz clic para enfocar esta categoría";
+        ? "Toca el segmento para volver al total"
+        : "Toca para enfocar esta categoría";
       return;
     }
 
     const totalPct = getTotalPercent();
     const diffPct = 100 - totalPct;
     const diffAmount = Math.round((state.income * diffPct) / 100);
-    const periodLabel = PERIOD_FACTORS[state.period].label;
 
-    els.centerLabel.textContent = `Ingreso ${periodLabel}`;
+    els.centerLabel.textContent = `Ingreso ${PERIOD_FACTORS[state.period].label}`;
     els.centerAmount.textContent = formatMoney(state.income);
 
     if (diffPct === 0) {
       els.centerStatus.textContent = "100% asignado";
       els.centerStatus.className = "center-status status-balanced";
-      els.centerSubnote.textContent = "Distribución equilibrada";
+      els.centerSubnote.textContent = "Toca un segmento para enfocarte";
     } else if (diffPct > 0) {
       els.centerStatus.textContent = `Te sobran ${formatMoney(diffAmount)} (${diffPct}%)`;
       els.centerStatus.className = "center-status status-surplus";
-      els.centerSubnote.textContent = `Asignado: ${totalPct}% de tu ingreso`;
+      els.centerSubnote.textContent = `Asignado: ${totalPct}%`;
     } else {
       els.centerStatus.textContent = `Excedes por ${formatMoney(Math.abs(diffAmount))}`;
       els.centerStatus.className = "center-status status-deficit";
-      els.centerSubnote.textContent = `Total asignado: ${totalPct}% (sobre 100%)`;
+      els.centerSubnote.textContent = `Asignado: ${totalPct}% (sobre 100%)`;
     }
   }
 
@@ -627,43 +631,13 @@
   function toggleFocusCategory(catId) {
     focusedCategoryId = focusedCategoryId === catId ? null : catId;
     renderChart();
-    updateCategoriesInPlace();
-    if (focusedCategoryId) {
-      const card = document.querySelector(`.category-card[data-cat-id="${focusedCategoryId}"]`);
-      if (card) {
-        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
-    }
+    updateSlidersInPlace();
   }
 
-  function renderLegend() {
-    els.chartLegend.innerHTML = state.categories
-      .map((cat) => {
-        const amount = getCategoryAmount(cat);
-        const focusedClass = focusedCategoryId === cat.id ? "is-focused" : "";
-        return `
-          <button type="button" class="legend-pill ${focusedClass}" data-cat-id="${cat.id}">
-            <span class="legend-dot" style="background:${cat.color}"></span>
-            <span class="legend-name">${escapeHtml(cat.name)}</span>
-            <span class="legend-values">${cat.percent}% · ${formatMoney(amount)}</span>
-          </button>
-        `;
-      })
-      .join("");
-
-    els.chartLegend.querySelectorAll(".legend-pill").forEach((pill) => {
-      pill.addEventListener("click", () => toggleFocusCategory(pill.getAttribute("data-cat-id")));
-    });
-  }
-
-  // =========================================================================
-  // Renderizado de Controles de Categorías (mantiene foco y drag en sliders)
-  // =========================================================================
-
-  function mountCategories() {
+  function mountMinimalSliders() {
     const curSymbol = (CURRENCIES[state.currency] || CURRENCIES.USD).symbol;
 
-    els.categoriesStack.innerHTML = state.categories
+    els.minimalSlidersList.innerHTML = state.categories
       .map((cat) => {
         const amount = getCategoryAmount(cat);
         const itemsSum = cat.items.reduce((s, item) => s + (Number(item.amount) || 0), 0);
@@ -673,55 +647,31 @@
           .map(
             (item) => `
             <div class="item-row" data-item-id="${item.id}">
-              <input
-                type="text"
-                class="item-name-input"
-                value="${escapeHtml(item.name)}"
-                placeholder="Concepto del gasto"
-                aria-label="Concepto de ${escapeHtml(cat.name)}"
-              />
-              <input
-                type="number"
-                class="item-amount-input"
-                min="0"
-                step="10"
-                value="${Math.round(Number(item.amount) || 0)}"
-                aria-label="Monto de ${escapeHtml(item.name)}"
-              />
-              <button type="button" class="item-remove-btn" title="Eliminar rubro" aria-label="Eliminar rubro">&times;</button>
+              <input type="text" class="item-name-input" value="${escapeHtml(item.name)}" placeholder="Concepto" aria-label="Concepto de gasto" />
+              <input type="number" class="item-amount-input" min="0" step="10" value="${Math.round(Number(item.amount) || 0)}" aria-label="Monto del gasto" />
+              <button type="button" class="item-remove-btn" aria-label="Eliminar">&times;</button>
             </div>
           `
           )
           .join("");
 
         return `
-          <div class="category-card ${focusedClass}" data-cat-id="${cat.id}" style="--cat-color:${cat.color}">
-            <div class="category-card-top">
-              <div class="category-identity">
-                <span class="category-swatch" aria-hidden="true"></span>
-                <div>
-                  <h3 class="category-title">${escapeHtml(cat.name)}</h3>
-                  <p class="category-desc">${escapeHtml(cat.description)}</p>
-                </div>
+          <div class="min-cat-row ${focusedClass}" data-cat-id="${cat.id}" style="--cat-color:${cat.color}">
+            <div class="min-cat-head">
+              <div class="min-cat-title-wrap">
+                <span class="cat-dot" aria-hidden="true"></span>
+                <span class="min-cat-name">${escapeHtml(cat.name)}</span>
               </div>
-
-              <div class="category-numbers">
-                <div class="amount-input-box">
-                  <span class="amount-input-prefix">${curSymbol}</span>
-                  <input
-                    type="number"
-                    class="cat-amount-input"
-                    min="0"
-                    step="10"
-                    value="${amount}"
-                    aria-label="Monto para ${escapeHtml(cat.name)}"
-                  />
+              <div class="min-cat-controls">
+                <div class="inline-money-box">
+                  <span class="amount-prefix">${curSymbol}</span>
+                  <input type="number" class="cat-amount-input" min="0" step="10" value="${amount}" aria-label="Monto para ${escapeHtml(cat.name)}" />
                 </div>
-                <span class="cat-percent-pill">${cat.percent}%</span>
+                <span class="cat-pct-badge">${cat.percent}%</span>
               </div>
             </div>
 
-            <div class="category-slider-row">
+            <div class="min-slider-wrap">
               <input
                 type="range"
                 class="cat-slider"
@@ -733,20 +683,18 @@
               />
             </div>
 
-            <div class="category-items-bar">
+            <div class="min-cat-foot">
               <button type="button" class="toggle-items-btn" aria-expanded="${cat.expanded ? "true" : "false"}">
-                <span>${cat.expanded ? "▾ Ocultar desglose de rubros" : "▸ Detallar rubros reales"} (${cat.items.length})</span>
+                ${cat.expanded ? "▾ Ocultar rubros" : "▸ Detallar rubros reales"} (${cat.items.length})
               </button>
-              <span class="items-summary-hint">Suma detallada: <strong>${formatMoney(itemsSum)}</strong></span>
+              <span style="font-size:0.76rem; color:var(--ink-muted);">Suma: <strong class="items-sum-label">${formatMoney(itemsSum)}</strong></span>
             </div>
 
-            <div class="items-panel" ${cat.expanded ? "" : "hidden"}>
+            <div class="items-drawer" ${cat.expanded ? "" : "hidden"}>
               ${itemsHtml}
-              <div class="items-footer-actions">
-                <button type="button" class="btn-mini btn-add-item">+ Añadir gasto</button>
-                <button type="button" class="btn-mini btn-mini-accent btn-apply-items">
-                  Aplicar suma (${formatMoney(itemsSum)}) a esta categoría
-                </button>
+              <div class="items-drawer-actions">
+                <button type="button" class="btn-mini btn-add-item">+ Añadir rubro</button>
+                <button type="button" class="btn-mini btn-mini-dark btn-apply-items">Aplicar ${formatMoney(itemsSum)}</button>
               </div>
             </div>
           </div>
@@ -754,197 +702,437 @@
       })
       .join("");
 
-    els.categoriesStack.querySelectorAll(".category-card").forEach((card) => {
-      const catId = card.getAttribute("data-cat-id");
+    els.minimalSlidersList.querySelectorAll(".min-cat-row").forEach((row) => {
+      const catId = row.getAttribute("data-cat-id");
       const cat = state.categories.find((c) => c.id === catId);
       if (!cat) return;
 
-      const slider = card.querySelector(".cat-slider");
-      const amountInput = card.querySelector(".cat-amount-input");
-      const toggleItemsBtn = card.querySelector(".toggle-items-btn");
-      const addItemBtn = card.querySelector(".btn-add-item");
-      const applyItemsBtn = card.querySelector(".btn-apply-items");
-
-      slider.addEventListener("input", (e) => {
+      row.querySelector(".cat-slider").addEventListener("input", (e) => {
         setCategoryPercent(catId, Number(e.target.value));
       });
 
-      amountInput.addEventListener("change", (e) => {
+      row.querySelector(".cat-amount-input").addEventListener("change", (e) => {
         const val = Math.max(0, Number(e.target.value) || 0);
         if (state.income > 0) {
-          const pct = Math.round((val / state.income) * 100);
-          setCategoryPercent(catId, pct);
+          setCategoryPercent(catId, Math.round((val / state.income) * 100));
         }
       });
 
-      toggleItemsBtn.addEventListener("click", () => {
+      row.querySelector(".toggle-items-btn").addEventListener("click", () => {
         cat.expanded = !cat.expanded;
         saveState();
-        mountCategories();
+        mountMinimalSliders();
       });
 
-      addItemBtn.addEventListener("click", () => {
-        cat.items.push({
-          id: "i_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
-          name: "Nuevo gasto",
-          amount: 0,
-        });
+      row.querySelector(".btn-add-item").addEventListener("click", () => {
+        cat.items.push({ id: "i_" + Date.now(), name: "Nuevo gasto", amount: 0 });
         cat.expanded = true;
         saveState();
-        mountCategories();
+        mountMinimalSliders();
       });
 
-      applyItemsBtn.addEventListener("click", () => {
+      row.querySelector(".btn-apply-items").addEventListener("click", () => {
         const sum = cat.items.reduce((s, i) => s + (Number(i.amount) || 0), 0);
         if (state.income > 0) {
-          const pct = Math.round((sum / state.income) * 100);
-          setCategoryPercent(catId, pct);
+          setCategoryPercent(catId, Math.round((sum / state.income) * 100));
         }
       });
 
-      card.querySelectorAll(".item-row").forEach((row) => {
-        const itemId = row.getAttribute("data-item-id");
+      row.querySelectorAll(".item-row").forEach((itemRow) => {
+        const itemId = itemRow.getAttribute("data-item-id");
         const item = cat.items.find((i) => i.id === itemId);
         if (!item) return;
 
-        row.querySelector(".item-name-input").addEventListener("input", (e) => {
+        itemRow.querySelector(".item-name-input").addEventListener("input", (e) => {
           item.name = e.target.value;
           saveState();
         });
 
-        row.querySelector(".item-amount-input").addEventListener("input", (e) => {
+        itemRow.querySelector(".item-amount-input").addEventListener("input", (e) => {
           item.amount = Math.max(0, Number(e.target.value) || 0);
           saveState();
-          const newSum = cat.items.reduce((s, i) => s + (Number(i.amount) || 0), 0);
-          card.querySelector(".items-summary-hint strong").textContent = formatMoney(newSum);
-          card.querySelector(".btn-apply-items").textContent = `Aplicar suma (${formatMoney(newSum)}) a esta categoría`;
+          const sum = cat.items.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+          row.querySelector(".items-sum-label").textContent = formatMoney(sum);
+          row.querySelector(".btn-apply-items").textContent = `Aplicar ${formatMoney(sum)}`;
         });
 
-        row.querySelector(".item-remove-btn").addEventListener("click", () => {
+        itemRow.querySelector(".item-remove-btn").addEventListener("click", () => {
           cat.items = cat.items.filter((i) => i.id !== itemId);
           saveState();
-          mountCategories();
+          mountMinimalSliders();
         });
       });
     });
   }
 
-  function updateCategoriesInPlace() {
-    if (!els.categoriesStack.querySelector(".category-card")) {
-      mountCategories();
+  function updateSlidersInPlace() {
+    if (!els.minimalSlidersList.querySelector(".min-cat-row")) {
+      mountMinimalSliders();
       return;
     }
 
     const curSymbol = (CURRENCIES[state.currency] || CURRENCIES.USD).symbol;
-
     state.categories.forEach((cat) => {
-      const card = els.categoriesStack.querySelector(`.category-card[data-cat-id="${cat.id}"]`);
-      if (!card) return;
+      const row = els.minimalSlidersList.querySelector(`.min-cat-row[data-cat-id="${cat.id}"]`);
+      if (!row) return;
 
-      card.classList.toggle("is-focused", focusedCategoryId === cat.id);
+      row.classList.toggle("is-focused", focusedCategoryId === cat.id);
+      row.querySelector(".amount-prefix").textContent = curSymbol;
 
-      const amount = getCategoryAmount(cat);
-      const itemsSum = cat.items.reduce((s, item) => s + (Number(item.amount) || 0), 0);
-
-      card.querySelector(".amount-input-prefix").textContent = curSymbol;
-
-      const amountInput = card.querySelector(".cat-amount-input");
+      const amountInput = row.querySelector(".cat-amount-input");
       if (document.activeElement !== amountInput) {
-        amountInput.value = amount;
+        amountInput.value = getCategoryAmount(cat);
       }
 
-      card.querySelector(".cat-percent-pill").textContent = `${cat.percent}%`;
-
-      const slider = card.querySelector(".cat-slider");
+      row.querySelector(".cat-pct-badge").textContent = `${cat.percent}%`;
+      const slider = row.querySelector(".cat-slider");
       slider.value = cat.percent;
       slider.style.setProperty("--slider-pct", `${cat.percent}%`);
 
-      card.querySelector(".items-summary-hint strong").textContent = formatMoney(itemsSum);
-      card.querySelector(".btn-apply-items").textContent = `Aplicar suma (${formatMoney(itemsSum)}) a esta categoría`;
+      const sum = cat.items.reduce((s, i) => s + (Number(i.amount) || 0), 0);
+      row.querySelector(".items-sum-label").textContent = formatMoney(sum);
+      row.querySelector(".btn-apply-items").textContent = `Aplicar ${formatMoney(sum)}`;
     });
   }
 
-  function renderCategories() {
-    updateCategoriesInPlace();
+  function renderScene3LiveTip() {
+    const needs = state.categories[0].percent;
+    const wants = state.categories[1].percent;
+    const savings = state.categories[2].percent;
+    const total = needs + wants + savings;
+    const perYear = PERIOD_FACTORS[state.period].perYear;
+    const annualSave = Math.round((state.income * savings) / 100) * perYear;
+
+    if (total > 100) {
+      els.s3LiveFeedback.innerHTML = `<strong>Alerta:</strong> Estás asignando ${total}% de tu ingreso. Reduce ${total - 100}% para evitar déficits.`;
+    } else if (total < 100) {
+      els.s3LiveFeedback.innerHTML = `Tienes <strong>${100 - total}% sin asignar</strong>. Dales un destino (idealmente a ahorro) para que cada unidad trabaje por ti.`;
+    } else if (savings >= 25) {
+      els.s3LiveFeedback.innerHTML = `<strong>Ritmo acelerado:</strong> Con el ${savings}% en ahorro reunirás <strong>${formatMoney(annualSave)} en 1 año</strong>.`;
+    } else if (needs > 65) {
+      els.s3LiveFeedback.innerHTML = `<strong>Dato clave:</strong> Tus fijos ocupan el ${needs}%. En el siguiente paso veremos cómo blindar tu margen.`;
+    } else {
+      els.s3LiveFeedback.innerHTML = `<strong>Balance saludable:</strong> Estás proyectando ahorrar <strong>${formatMoney(annualSave)} al año</strong> manteniendo ${wants}% para disfrutar.`;
+    }
+  }
+
+  function renderScene3() {
+    const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
+    els.s3StrategyBadge.textContent = `Paso 3 de 5 · Estrategia: ${strat.name}`;
+    els.autobalanceCheckbox.checked = state.autoBalance;
+    renderChart();
+    updateSlidersInPlace();
+    renderScene3LiveTip();
   }
 
   // =========================================================================
-  // Renderizado de Insights ("El Porqué" & "Qué Mejorar" & Proyección)
+  // Motor de Diagnóstico & Escena 4 (Simulador de Mejoras)
   // =========================================================================
 
-  function renderInsights() {
-    const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
-    const analysis = analyzeBudget();
+  function analyzeBudget() {
+    const needs = state.categories.find((c) => c.id === "needs")?.percent || 0;
+    const wants = state.categories.find((c) => c.id === "wants")?.percent || 0;
+    const savings = state.categories.find((c) => c.id === "savings")?.percent || 0;
+    const totalPct = needs + wants + savings;
+    const diffPct = 100 - totalPct;
+    const diffAmount = Math.round((state.income * diffPct) / 100);
 
-    // El porqué
-    els.liveWhyContent.innerHTML = `
-      <p><strong>${escapeHtml(strat.name)}:</strong> ${escapeHtml(strat.whySummary)}</p>
-      <ul class="insight-list">
-        ${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}
-      </ul>
-      <p><strong>Ideal para:</strong> ${escapeHtml(strat.bestFor)}</p>
-    `;
+    const savingsAmount = Math.round((state.income * savings) / 100);
+    const needsAmount = Math.round((state.income * needs) / 100);
+    const perYear = PERIOD_FACTORS[state.period].perYear;
+    const annualSavings = savingsAmount * perYear;
+    const emergencyTarget = needsAmount * 3;
+    const periodsToEmergency = savingsAmount > 0 ? Math.ceil(emergencyTarget / savingsAmount) : null;
 
-    // Score badge
-    els.scoreNumber.textContent = analysis.score;
-    els.healthScoreBadge.className = "health-score-badge";
-    if (analysis.score < 60) {
-      els.healthScoreBadge.classList.add("score-low");
-    } else if (analysis.score < 80) {
-      els.healthScoreBadge.classList.add("score-medium");
+    let score = 78;
+    const strengths = [];
+    const improvements = [];
+    const actionSteps = [];
+
+    if (state.income <= 0) {
+      score = 0;
+      improvements.push({
+        level: "alert",
+        tag: "Ingreso en cero",
+        text: "Regresa al Paso 1 para ingresar tu ingreso neto y calcular recomendaciones reales.",
+        simAction: null,
+      });
+    } else {
+      if (savings >= 25) {
+        score += 18;
+        strengths.push(`Ahorro sobresaliente (${savings}%), sumando ${formatMoney(annualSavings)} al año.`);
+      } else if (savings >= 20) {
+        score += 12;
+        strengths.push(`Cumples la meta estándar del ${savings}% de ahorro (${formatMoney(annualSavings)} al año).`);
+      } else if (savings >= 10) {
+        score += 2;
+        const boost = Math.min(5, Math.max(1, wants - 15));
+        improvements.push({
+          level: "warn",
+          tag: "Margen de ahorro mejorable",
+          text: `Ahorras ${savings}%. Subirlo un ${boost}% sumaría +${formatMoney(Math.round((state.income * boost) / 100) * perYear)} extra en 12 meses.`,
+          simAction:
+            wants >= 20
+              ? { label: `Simular +${boost}% de Deseos a Ahorro`, deltas: { wants: -boost, savings: boost } }
+              : null,
+        });
+        actionSteps.push(`Automatiza tu ahorro el mismo día que recibes ingresos y busca elevarlo gradualmente hacia el 20%.`);
+      } else {
+        score -= 22;
+        const boost = Math.min(8, Math.max(5, wants - 10));
+        improvements.push({
+          level: "alert",
+          tag: "Ahorro insuficiente",
+          text: `Solo destinas ${savings}% al futuro. Sin reserva, cualquier imprevisto genera deuda.`,
+          simAction:
+            wants >= 15
+              ? { label: `Simular +${boost}% de Deseos a Ahorro`, deltas: { wants: -boost, savings: boost } }
+              : null,
+        });
+        actionSteps.push(`Aparta al menos ${formatMoney(state.income * 0.05)} por periodo antes de gastar en ocio.`);
+      }
+
+      if (needs <= 50) {
+        score += 6;
+        strengths.push(`Gastos fijos ligeros (${needs}%), lo que te da gran libertad ante imprevistos.`);
+      } else if (needs <= 65) {
+        improvements.push({
+          level: "warn",
+          tag: "Fijos moderados-altos",
+          text: `Tus necesidades ocupan ${needs}%. Optimizar servicios o supermercado un 5% liberaría ${formatMoney(state.income * 0.05 * perYear)} anuales.`,
+          simAction: { label: "Simular -5% en Necesidades hacia Ahorro", deltas: { needs: -5, savings: 5 } },
+        });
+        actionSteps.push(`Renegocia o compara tus 2 gastos fijos mayores para bajar la carga por debajo del 55%.`);
+      } else {
+        score -= 16;
+        improvements.push({
+          level: "alert",
+          tag: "Sobrecarga fija",
+          text: `El ${needs}% en necesidades reduce demasiado tu oxígeno financiero.`,
+          simAction: { label: "Simular alivio de -5% a Ahorro", deltas: { needs: -5, savings: 5 } },
+        });
+        actionSteps.push(`Evita nuevas cuotas o compromisos fijos hasta reducir necesidades bajo el 60%.`);
+      }
+
+      if (wants > 35) {
+        score -= 12;
+        improvements.push({
+          level: "warn",
+          tag: "Deseos elevados",
+          text: `Destinas ${wants}% a estilo de vida (${formatMoney((state.income * wants) / 100)}). Recortar 5% aquí acelera tus metas.`,
+          simAction: { label: "Mover 5% a Ahorro", deltas: { wants: -5, savings: 5 } },
+        });
+        actionSteps.push(`Asigna un tope semanal para salidas y cancela suscripciones poco usadas.`);
+      } else if (wants >= 15 && wants <= 30) {
+        strengths.push(`Equilibrio sano en estilo de vida (${wants}%), sostenible sin privaciones extremas.`);
+      } else if (wants < 10) {
+        improvements.push({
+          level: "warn",
+          tag: "Presupuesto muy estricto",
+          text: `Un ${wants}% de ocio suele ser difícil de mantener varios meses seguidos.`,
+          simAction: null,
+        });
+      }
+
+      if (diffPct < 0) {
+        score -= 20;
+        improvements.unshift({
+          level: "alert",
+          tag: "Déficit del " + Math.abs(diffPct) + "%",
+          text: `Asignas ${totalPct}% del ingreso (exceso de ${formatMoney(Math.abs(diffAmount))}).`,
+          simAction: { label: "Reequilibrar al 100% ahora", rebalance: true },
+        });
+        actionSteps.unshift(`Recorta ${formatMoney(Math.abs(diffAmount))} hoy mismo para no financiar gastos con deuda.`);
+      } else if (diffPct > 0) {
+        score -= 4;
+        improvements.unshift({
+          level: "warn",
+          tag: "Excedente sin destino",
+          text: `Hay ${formatMoney(diffAmount)} (${diffPct}%) sin asignar que tienden a fugarse en gastos hormiga.`,
+          simAction: { label: `Enviar ${diffPct}% libre a Ahorro`, deltas: { savings: diffPct } },
+        });
+        actionSteps.push(`Dirige automáticamente los ${formatMoney(diffAmount)} libres a tu meta de ahorro.`);
+      }
     }
 
-    // Qué mejorar + fortalezas
-    const improvItems = analysis.improvements
-      .map((imp) => {
-        const tagClass =
-          imp.level === "alert" ? "tag-alert" : imp.level === "warn" ? "tag-warn" : "tag-ok";
-        return `<li><span class="diagnosis-tag ${tagClass}">${escapeHtml(imp.tag)}</span>${escapeHtml(imp.text)}</li>`;
-      })
-      .join("");
+    if (actionSteps.length < 3) {
+      if (periodsToEmergency !== null && savingsAmount > 0) {
+        actionSteps.push(
+          `Con ${formatMoney(savingsAmount)} por periodo completarás tu fondo de emergencia (3x = ${formatMoney(emergencyTarget)}) en ${periodsToEmergency} ${state.period === "anual" ? "años" : "periodos"}.`
+        );
+      }
+      actionSteps.push(`Revisa tus números el primer día de cada mes y compara lo planeado con lo real.`);
+    }
 
-    const strengthItems = analysis.strengths
-      .map((st) => `<li><span class="diagnosis-tag tag-ok">Fortaleza</span>${escapeHtml(st)}</li>`)
-      .join("");
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    const verdict =
+      score >= 85
+        ? "Estructura financiera sólida y equilibrada"
+        : score >= 68
+        ? "Buen punto de partida con margen de optimización"
+        : "Necesita ajustes clave para proteger tu estabilidad";
 
-    els.liveImproveContent.innerHTML = `
-      <ul class="insight-list">
-        ${improvItems}
-        ${strengthItems}
-      </ul>
-      <p><strong>Siguiente paso recomendado:</strong> ${escapeHtml(analysis.actionSteps[0] || "")}</p>
-    `;
+    return {
+      needs,
+      wants,
+      savings,
+      totalPct,
+      diffPct,
+      diffAmount,
+      savingsAmount,
+      needsAmount,
+      annualSavings,
+      emergencyTarget,
+      periodsToEmergency,
+      score,
+      verdict,
+      strengths,
+      improvements,
+      actionSteps: actionSteps.slice(0, 4),
+    };
+  }
 
-    // Banner de proyección anual
+  function applySimulationAction(simAction) {
+    if (!simAction) return;
+    if (simAction.rebalance) {
+      state.autoBalance = true;
+      setCategoryPercent("needs", state.categories[0].percent);
+      renderScene4(true);
+      return;
+    }
+    if (simAction.deltas) {
+      state.categories.forEach((c) => {
+        if (typeof simAction.deltas[c.id] === "number") {
+          c.percent = Math.max(0, Math.min(100, c.percent + simAction.deltas[c.id]));
+        }
+      });
+      detectStrategyMatch();
+      saveState();
+      renderScene4(true);
+    }
+  }
+
+  function renderScene4(animateScore = false) {
+    const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
+    const analysis = analyzeBudget();
+    const r = 46;
+    const circ = 2 * Math.PI * r;
+    const targetOffset = circ * (1 - analysis.score / 100);
+    const ringColor = analysis.score >= 80 ? "#0F766E" : analysis.score >= 60 ? "#D97706" : "#BE123C";
+
     const emergencyText =
       analysis.periodsToEmergency !== null
         ? `${analysis.periodsToEmergency} ${state.period === "anual" ? "años" : "periodos"}`
-        : "Sin ahorro activo";
+        : "Sin ahorro";
 
-    els.projectionBanner.innerHTML = `
-      <div class="proj-metric">
-        <span class="proj-label">Ahorro acumulado en 1 año</span>
-        <strong class="proj-value">${formatMoney(analysis.annualSavings)}</strong>
-        <span class="proj-note">Al ${analysis.savings}% de ${formatMoney(state.income)} ${PERIOD_FACTORS[state.period].label}</span>
+    const improveCardsHtml = analysis.improvements.length
+      ? analysis.improvements
+          .map((imp, idx) => {
+            const badgeClass = imp.level === "alert" ? "tag-alert" : imp.level === "warn" ? "tag-warn" : "tag-ok";
+            const simBtn = imp.simAction
+              ? `<button type="button" class="btn-simulate" data-sim-idx="${idx}">${escapeHtml(imp.simAction.label)}</button>`
+              : "";
+            return `
+              <div class="improve-item">
+                <div class="improve-item-top">
+                  <span class="tag-badge ${badgeClass}">${escapeHtml(imp.tag)}</span>
+                </div>
+                <div>${escapeHtml(imp.text)}</div>
+                ${simBtn}
+              </div>
+            `;
+          })
+          .join("")
+      : `<div class="improve-item"><span class="tag-badge tag-ok">Óptimo</span> Tu reparto actual no presenta alertas críticas. ¡Gran trabajo!</div>`;
+
+    els.s4DiagnosisContent.innerHTML = `
+      <div class="diagnosis-hero">
+        <div class="score-ring-wrap">
+          <svg class="score-ring-svg" viewBox="0 0 112 112" width="112" height="112">
+            <circle cx="56" cy="56" r="${r}" fill="none" stroke="#efece4" stroke-width="10" />
+            <circle
+              id="score-ring-arc"
+              class="score-ring-arc"
+              cx="56"
+              cy="56"
+              r="${r}"
+              fill="none"
+              stroke="${ringColor}"
+              stroke-width="10"
+              stroke-linecap="round"
+              stroke-dasharray="${circ.toFixed(2)}"
+              stroke-dashoffset="${animateScore ? circ.toFixed(2) : targetOffset.toFixed(2)}"
+            />
+          </svg>
+          <div class="score-ring-center">
+            <strong id="s4-score-num">${animateScore ? 0 : analysis.score}</strong>
+            <span>/ 100</span>
+          </div>
+        </div>
+        <div class="diagnosis-hero-copy">
+          <h3>${escapeHtml(analysis.verdict)}</h3>
+          <p>
+            Con la estrategia <strong>${escapeHtml(strat.name)}</strong> sobre un ingreso ${PERIOD_FACTORS[state.period].label} de <strong>${formatMoney(state.income, true)}</strong>,
+            estás protegiendo un ahorro anual proyectado de <strong>${formatMoney(analysis.annualSavings)}</strong>.
+          </p>
+        </div>
       </div>
-      <div class="proj-metric">
-        <span class="proj-label">Meta fondo emergencia (3x)</span>
-        <strong class="proj-value">${formatMoney(analysis.emergencyTarget)}</strong>
-        <span class="proj-note">Cubre 3 periodos de gastos esenciales</span>
+
+      <div class="diagnosis-columns">
+        <article class="diag-card">
+          <h3>¿Por qué este presupuesto?</h3>
+          <p style="margin:0; font-size:0.88rem; color:var(--ink-secondary);">${escapeHtml(strat.whySummary)}</p>
+          <ul class="diag-list">
+            ${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}
+            ${analysis.strengths.map((s) => `<li><strong>Fortaleza:</strong> ${escapeHtml(s)}</li>`).join("")}
+          </ul>
+        </article>
+
+        <article class="diag-card">
+          <h3>Qué se puede mejorar</h3>
+          ${improveCardsHtml}
+        </article>
       </div>
-      <div class="proj-metric">
-        <span class="proj-label">Tiempo para lograr tu fondo</span>
-        <strong class="proj-value">${emergencyText}</strong>
-        <span class="proj-note">Con tu ritmo actual de ahorro</span>
+
+      <div class="projection-strip">
+        <div class="proj-cell">
+          <span>Ahorro en 1 año</span>
+          <strong>${formatMoney(analysis.annualSavings)}</strong>
+        </div>
+        <div class="proj-cell">
+          <span>Meta fondo emergencia (3x)</span>
+          <strong>${formatMoney(analysis.emergencyTarget)}</strong>
+        </div>
+        <div class="proj-cell">
+          <span>Tiempo estimado</span>
+          <strong>${emergencyText}</strong>
+        </div>
       </div>
     `;
+
+    if (animateScore) {
+      requestAnimationFrame(() => {
+        const arc = document.getElementById("score-ring-arc");
+        const numEl = document.getElementById("s4-score-num");
+        if (arc) arc.setAttribute("stroke-dashoffset", targetOffset.toFixed(2));
+        if (numEl) animateValue(numEl, 0, analysis.score, 650);
+      });
+    }
+
+    els.s4DiagnosisContent.querySelectorAll(".btn-simulate").forEach((btn) => {
+      const idx = Number(btn.getAttribute("data-sim-idx"));
+      const imp = analysis.improvements[idx];
+      if (imp && imp.simAction) {
+        btn.addEventListener("click", () => applySimulationAction(imp.simAction));
+      }
+    });
   }
 
   // =========================================================================
-  // Documento Formal Imprimible ("Imprimir / Guardar PDF")
+  // Escena 5: Documento Ejecutivo Imprimible
   // =========================================================================
 
-  function buildPrintableDocument() {
+  function buildDocumentMarkup() {
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     const analysis = analyzeBudget();
     const perYear = PERIOD_FACTORS[state.period].perYear;
@@ -960,9 +1148,9 @@
       : "Documento de planificación personal";
 
     const miniChartSvg = `
-      <svg viewBox="0 0 220 220" width="190" height="190" style="transform: rotate(-90deg);" aria-label="Gráfico de distribución del presupuesto">
+      <svg viewBox="0 0 220 220" width="180" height="180" style="transform: rotate(-90deg);" aria-label="Gráfico del presupuesto">
         <circle cx="110" cy="110" r="78" fill="none" stroke="#efece4" stroke-width="28" />
-        ${buildDonutMarkup(78, 28, 110, true)}
+        ${buildDonutMarkup(78, 28, 110)}
       </svg>
     `;
 
@@ -1010,7 +1198,7 @@
 
     const strengthsList = analysis.strengths.map((s) => `<li>${escapeHtml(s)}</li>`).join("");
 
-    els.printableDocument.innerHTML = `
+    return `
       <header class="doc-header">
         <div>
           <span class="doc-brand">BudgetFlow · Informe Personal</span>
@@ -1020,14 +1208,14 @@
         <div class="doc-meta-box">
           <span>Fecha: ${escapeHtml(today)}</span>
           <strong>Ingreso ${escapeHtml(periodAdj)}: ${formatMoney(state.income, true)}</strong>
-          <span>Índice de salud financiera: <strong>${analysis.score} / 100</strong></span>
+          <span>Salud financiera: <strong>${analysis.score} / 100</strong></span>
         </div>
       </header>
 
       <section class="doc-summary-grid">
         <div class="doc-chart-box">
           ${miniChartSvg}
-          <span style="font-size:0.78rem; color:#5c626e;">Asignación total: <strong>${analysis.totalPct}%</strong></span>
+          <span style="font-size:0.76rem; color:#5c626e;">Asignación total: <strong>${analysis.totalPct}%</strong></span>
         </div>
 
         <div>
@@ -1041,9 +1229,7 @@
                 <th class="num">Proyección Anual</th>
               </tr>
             </thead>
-            <tbody>
-              ${tableRows}
-            </tbody>
+            <tbody>${tableRows}</tbody>
             <tfoot>
               <tr>
                 <td>Total asignado</td>
@@ -1060,179 +1246,161 @@
       <section class="doc-section">
         <h2 class="doc-section-title">1. ¿Por qué este tipo de presupuesto?</h2>
         <div class="doc-prose">
-          <p><strong>Fundamento de la estrategia (${escapeHtml(strat.name)}):</strong> ${escapeHtml(strat.whySummary)}</p>
-          <ul>
-            ${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}
-          </ul>
-          <p><strong>Por qué funciona para tu caso:</strong> ${escapeHtml(strat.bestFor)} Con tu nivel de ingreso (${formatMoney(state.income, true)} ${PERIOD_FACTORS[state.period].label}), mantener claras estas proporciones evita que los gastos cotidianos absorban tu capacidad de ahorro anual (${formatMoney(analysis.annualSavings)} proyectados en 12 meses).</p>
+          <p><strong>Fundamento (${escapeHtml(strat.name)}):</strong> ${escapeHtml(strat.whySummary)}</p>
+          <ul>${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}</ul>
+          <p><strong>Aplicación a tu caso:</strong> ${escapeHtml(strat.bestFor)} Con tu ingreso (${formatMoney(state.income, true)} ${PERIOD_FACTORS[state.period].label}), esta estructura proyecta <strong>${formatMoney(analysis.annualSavings)}</strong> de ahorro en 12 meses.</p>
         </div>
       </section>
 
       <section class="doc-section">
         <h2 class="doc-section-title">2. Desglose de rubros contemplados</h2>
-        <div class="doc-items-grid">
-          ${itemizedCards}
-        </div>
+        <div class="doc-items-grid">${itemizedCards}</div>
       </section>
 
       <section class="doc-section">
         <h2 class="doc-section-title">3. Diagnóstico y qué se puede mejorar</h2>
         <div class="doc-prose">
-          ${
-            strengthsList
-              ? `<p><strong>Puntos fuertes actuales:</strong></p><ul>${strengthsList}</ul>`
-              : ""
-          }
-          <p><strong>Oportunidades de mejora detectadas:</strong></p>
+          ${strengthsList ? `<p><strong>Fortalezas actuales:</strong></p><ul>${strengthsList}</ul>` : ""}
+          <p><strong>Oportunidades de mejora:</strong></p>
           <ul>${improvementsList}</ul>
         </div>
 
         <div class="doc-action-box">
-          <h4>Plan de acción sugerido para este periodo</h4>
-          <ol>
-            ${analysis.actionSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}
-          </ol>
+          <h4>Plan de acción sugerido</h4>
+          <ol>${analysis.actionSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("")}</ol>
         </div>
       </section>
 
       <footer class="doc-footer">
-        <span>Generado con BudgetFlow · Herramienta de presupuesto personal</span>
+        <span>Generado con BudgetFlow · Presupuesto personal paso a paso</span>
         <span>Revisión sugerida: inicio de cada mes</span>
       </footer>
     `;
   }
 
-  function openReportModal() {
-    buildPrintableDocument();
-    els.reportOwnerInput.value = state.ownerName;
-    els.reportModal.hidden = false;
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeReportModal() {
-    els.reportModal.hidden = true;
-    document.body.style.overflow = "";
-  }
-
-  function triggerPrint() {
-    buildPrintableDocument();
-    els.reportModal.hidden = false;
-    setTimeout(() => {
-      window.print();
-    }, 80);
-  }
-
-  // =========================================================================
-  // Render Global & Eventos
-  // =========================================================================
-
-  function renderHeaderControls() {
-    const cur = CURRENCIES[state.currency] || CURRENCIES.USD;
-    els.currencyPrefix.textContent = cur.symbol;
-    els.currencySelect.value = state.currency;
-    els.periodSelect.value = state.period;
-    els.autobalanceCheckbox.checked = state.autoBalance;
-
-    if (document.activeElement !== els.incomeInput) {
-      els.incomeInput.value = state.income;
+  function renderScene5() {
+    if (document.activeElement !== els.reportOwnerInput) {
+      els.reportOwnerInput.value = state.ownerName;
     }
+    const markup = buildDocumentMarkup();
+    els.docPreviewFrame.innerHTML = markup;
+    els.printableDocument.innerHTML = markup;
+  }
 
-    els.strategyPills.querySelectorAll(".strategy-pill").forEach((pill) => {
-      const active = pill.getAttribute("data-strategy") === state.strategy;
-      pill.classList.toggle("active", active);
-      pill.setAttribute("aria-selected", active ? "true" : "false");
+  // =========================================================================
+  // Render General & Eventos
+  // =========================================================================
+
+  function renderCurrentScene(animate = false) {
+    if (state.currentStep === 1) renderScene1();
+    if (state.currentStep === 2) renderScene2();
+    if (state.currentStep === 3) renderScene3();
+    if (state.currentStep === 4) renderScene4(animate);
+    if (state.currentStep === 5) renderScene5();
+  }
+
+  function bindEvents() {
+    // Stepper clicks
+    els.stepper.querySelectorAll(".step-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = Number(btn.getAttribute("data-step"));
+        if (target <= state.unlockedStep) {
+          goToStep(target);
+        }
+      });
     });
-  }
 
-  function renderAll() {
-    renderHeaderControls();
-    renderChart();
-    renderCategories();
-    renderInsights();
-  }
+    els.btnHomeBrand.addEventListener("click", () => goToStep(1));
 
-  function bindGlobalEvents() {
+    document.querySelectorAll("[data-goto]").forEach((btn) => {
+      btn.addEventListener("click", () => goToStep(Number(btn.getAttribute("data-goto"))));
+    });
+
+    // Escena 1
     els.incomeInput.addEventListener("input", (e) => {
-      const val = Math.max(0, Number(e.target.value) || 0);
-      state.income = val;
+      state.income = Math.max(0, Number(e.target.value) || 0);
       saveState();
-      renderChart();
-      renderCategories();
-      renderInsights();
+      renderScene1();
     });
 
-    document.querySelectorAll(".chip-btn[data-income]").forEach((btn) => {
+    document.querySelectorAll(".pill-choice[data-income]").forEach((btn) => {
       btn.addEventListener("click", () => {
         state.income = Number(btn.getAttribute("data-income"));
         els.incomeInput.value = state.income;
         saveState();
-        renderAll();
+        renderScene1();
       });
-    });
-
-    els.currencySelect.addEventListener("change", (e) => {
-      state.currency = e.target.value;
-      saveState();
-      renderAll();
     });
 
     els.periodSelect.addEventListener("change", (e) => {
       state.period = e.target.value;
       saveState();
-      renderAll();
+      renderScene1();
     });
 
+    els.currencySelect.addEventListener("change", (e) => {
+      state.currency = e.target.value;
+      saveState();
+      renderScene1();
+    });
+
+    els.btnS1Next.addEventListener("click", () => {
+      if (state.income <= 0) {
+        els.incomeInput.focus();
+        els.s1Callout.innerHTML = `<strong style="color:#be123c;">Ingresa un monto mayor a cero</strong> para continuar al siguiente paso.`;
+        return;
+      }
+      unlockAndGo(2);
+    });
+
+    // Escena 2
+    els.btnS2Next.addEventListener("click", () => {
+      mountMinimalSliders();
+      unlockAndGo(3);
+    });
+
+    // Escena 3
     els.autobalanceCheckbox.addEventListener("change", (e) => {
       state.autoBalance = e.target.checked;
       if (state.autoBalance && getTotalPercent() !== 100) {
-        // Reajustar suavemente para sumar 100%
-        const needsCat = state.categories[0];
-        setCategoryPercent(needsCat.id, needsCat.percent);
+        setCategoryPercent(state.categories[0].id, state.categories[0].percent);
         return;
       }
       saveState();
-      renderAll();
+      renderScene3();
     });
 
-    els.strategyPills.querySelectorAll(".strategy-pill").forEach((pill) => {
-      pill.addEventListener("click", () => {
-        applyStrategy(pill.getAttribute("data-strategy"));
-      });
+    els.btnS3Next.addEventListener("click", () => unlockAndGo(4));
+
+    // Escena 4
+    els.btnS4Next.addEventListener("click", () => unlockAndGo(5));
+
+    // Escena 5
+    els.reportOwnerInput.addEventListener("input", (e) => {
+      state.ownerName = e.target.value;
+      saveState();
+      renderScene5();
     });
 
+    els.btnPrintNow.addEventListener("click", () => {
+      renderScene5();
+      window.print();
+    });
+
+    // Reset
     els.btnReset.addEventListener("click", () => {
       state = cloneDefaults();
       focusedCategoryId = null;
       saveState();
-      mountCategories();
-      renderAll();
-    });
-
-    els.btnOpenReport.addEventListener("click", openReportModal);
-    els.btnPreviewReport.addEventListener("click", openReportModal);
-    els.btnDirectPrint.addEventListener("click", triggerPrint);
-    els.btnCloseReport.addEventListener("click", closeReportModal);
-    els.btnModalPrint.addEventListener("click", () => window.print());
-
-    els.reportOwnerInput.addEventListener("input", (e) => {
-      state.ownerName = e.target.value;
-      saveState();
-      buildPrintableDocument();
-    });
-
-    els.reportModal.addEventListener("click", (e) => {
-      if (e.target === els.reportModal || e.target.classList.contains("printable-document-wrap")) {
-        closeReportModal();
-      }
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !els.reportModal.hidden) {
-        closeReportModal();
-      }
+      mountChart();
+      mountMinimalSliders();
+      goToStep(1, "backward");
     });
   }
 
-  bindGlobalEvents();
-  renderAll();
+  bindEvents();
+  renderStepper();
+  mountChart();
+  mountMinimalSliders();
+  goToStep(state.currentStep, "forward", true);
 })();

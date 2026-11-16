@@ -1,18 +1,18 @@
 # BudgetFlow
 
-Herramienta interactiva de presupuesto personal centrada en un gráfico circular grande y en tiempo real, con cambio instantáneo entre estrategias, análisis del porqué de cada método y generación de un documento imprimible / PDF con diagnóstico y plan de mejora.
+Experiencia interactiva paso a paso de presupuesto personal: minimalista, céntrica, con animaciones suaves entre escenas, gráfico circular vivo, simulador de mejoras y generación de documento imprimible en PDF.
 
-## Características
+## Flujo guiado en 5 pasos
 
-- **Diseño céntrico e interactivo:** El gráfico principal ocupa el centro de atención y se actualiza en vivo al modificar ingresos, porcentajes o montos.
-- **Estrategias intercambiables:** Cambia en un clic entre **50/30/20**, **70/20/10**, **60/20/20**, **45/25/30 (Ahorro acelerado)** o **Personalizado**, con auto-equilibrio opcional al 100%.
-- **Desglose de rubros reales:** Detalla gastos específicos por categoría y aplícalos directamente al presupuesto.
-- **El porqué & qué mejorar:** Explica el fundamento de la estrategia elegida, calcula un índice de salud financiera (0–100) y genera acciones concretas de mejora y proyección anual.
-- **Documento imprimible / PDF:** Vista previa ejecutiva limpia lista para imprimir o guardar como PDF (`@media print`).
+1. **Ingreso:** Define tu ingreso neto, frecuencia y moneda con cálculo anual instantáneo.
+2. **Estrategia:** Elige entre **50/30/20**, **60/20/20**, **70/20/10**, **45/25/30** o **Personalizado** mientras ves el porqué de cada método.
+3. **Gráfico en vivo:** Ajusta porcentajes, montos o rubros reales sobre un gráfico circular grande y céntrico.
+4. **Diagnóstico inteligente:** Obtén tu índice de salud financiera (`0–100`), proyecciones y botones de simulación en 1 clic para mejorar tu reparto.
+5. **Documento imprimible:** Revisa el informe ejecutivo completo y guárdalo en PDF o imprímelo (`@media print`).
 
 ## Ejecución local
 
-Es un proyecto 100% estático (HTML, CSS y JS sin dependencias externas de compilación). Puedes abrir `index.html` directamente o iniciar un servidor local:
+Proyecto 100% estático (HTML, CSS y JS sin compilación previa).
 
 ```bash
 python3 -m http.server 8080
