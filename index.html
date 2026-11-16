@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BudgetFlow — Presupuesto Personal Interactivo y Reporte Imprimible</title>
+  <meta
+    name="description"
+    content="Crea tu presupuesto personal de forma visual, céntrica e interactiva con BudgetFlow. Ajusta categorías en tiempo real, entiende el porqué de cada método e imprime tu informe con recomendaciones de mejora."
+  />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%230F766E' stroke-width='10' stroke-dasharray='82 164' stroke-dashoffset='0'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23D97706' stroke-width='10' stroke-dasharray='49 164' stroke-dashoffset='-82'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%232563EB' stroke-width='10' stroke-dasharray='33 164' stroke-dashoffset='-131'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- Interfaz principal interactiva (oculta al imprimir) -->
+  <div class="app-shell no-print" id="app-shell">
+    <header class="app-header">
+      <div class="brand-lockup">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 36 36" width="32" height="32">
+            <circle cx="18" cy="18" r="13" fill="none" stroke="#0F766E" stroke-width="5.5" stroke-dasharray="41 82" stroke-dashoffset="0" />
+            <circle cx="18" cy="18" r="13" fill="none" stroke="#D97706" stroke-width="5.5" stroke-dasharray="24 82" stroke-dashoffset="-41" />
+            <circle cx="18" cy="18" r="13" fill="none" stroke="#2563EB" stroke-width="5.5" stroke-dasharray="17 82" stroke-dashoffset="-65" />
+          </svg>
+        </span>
+        <div class="brand-text">
+          <span class="brand-name">BudgetFlow</span>
+          <span class="brand-tagline">Presupuesto personal visual</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" class="btn btn-ghost" id="btn-reset" title="Restablecer valores de ejemplo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          <span>Restablecer</span>
+        </button>
+        <button type="button" class="btn btn-primary" id="btn-open-report">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" />
+          </svg>
+          <span>Imprimir documento</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-centered">
+      <!-- Intro & Ingreso Céntrico -->
+      <section class="hero-section" aria-labelledby="hero-title">
+        <h1 id="hero-title" class="hero-title">Tu presupuesto, claro en el centro</h1>
+        <p class="hero-subtitle">
+          Define tu ingreso, elige una estrategia y ajusta tus porcentajes en vivo. Al terminar, genera tu informe imprimible con diagnóstico y plan de mejora.
+        </p>
+
+        <div class="income-panel">
+          <div class="income-input-group">
+            <label for="income-input" class="field-label">Ingreso neto</label>
+            <div class="income-field-wrap">
+              <span class="currency-prefix" id="currency-prefix">$</span>
+              <input
+                type="number"
+                id="income-input"
+                class="income-input"
+                min="0"
+                step="50"
+                value="2400"
+                inputmode="decimal"
+                aria-label="Ingreso neto"
+              />
+            </div>
+            <div class="quick-income-pills" aria-label="Atajos de ingreso">
+              <button type="button" class="chip-btn" data-income="1000">1,000</button>
+              <button type="button" class="chip-btn" data-income="2400">2,400</button>
+              <button type="button" class="chip-btn" data-income="4000">4,000</button>
+              <button type="button" class="chip-btn" data-income="6500">6,500</button>
+            </div>
+          </div>
+
+          <div class="income-meta-group">
+            <div class="meta-select-wrap">
+              <label for="period-select" class="field-label">Periodo</label>
+              <select id="period-select" class="meta-select">
+                <option value="mensual" selected>Mensual</option>
+                <option value="quincenal">Quincenal</option>
+                <option value="semanal">Semanal</option>
+                <option value="anual">Anual</option>
+              </select>
+            </div>
+
+            <div class="meta-select-wrap">
+              <label for="currency-select" class="field-label">Moneda</label>
+              <select id="currency-select" class="meta-select">
+                <option value="USD" selected>USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="MXN">MXN ($)</option>
+                <option value="COP">COP ($)</option>
+                <option value="ARS">ARS ($)</option>
+                <option value="CLP">CLP ($)</option>
+                <option value="PEN">PEN (S/)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Selector de Método de Presupuesto -->
+      <section class="strategy-section" aria-label="Tipo de presupuesto">
+        <div class="section-center-head">
+          <span class="section-eyebrow">Estrategia de distribución</span>
+          <div class="strategy-pills" id="strategy-pills" role="tablist" aria-label="Métodos de presupuesto">
+            <button type="button" class="strategy-pill active" data-strategy="50-30-20" role="tab" aria-selected="true">
+              <strong>50 / 30 / 20</strong>
+              <span>Equilibrio clásico</span>
+            </button>
+            <button type="button" class="strategy-pill" data-strategy="70-20-10" role="tab" aria-selected="false">
+              <strong>70 / 20 / 10</strong>
+              <span>Estabilidad &amp; deudas</span>
+            </button>
+            <button type="button" class="strategy-pill" data-strategy="60-20-20" role="tab" aria-selected="false">
+              <strong>60 / 20 / 20</strong>
+              <span>Fijos controlados</span>
+            </button>
+            <button type="button" class="strategy-pill" data-strategy="zero-based" role="tab" aria-selected="false">
+              <strong>45 / 25 / 30</strong>
+              <span>Ahorro acelerado</span>
+            </button>
+            <button type="button" class="strategy-pill" data-strategy="custom" role="tab" aria-selected="false">
+              <strong>Personalizado</strong>
+              <span>A tu medida</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- EL CENTRO: Gráfico Protagonista Grande -->
+      <section class="chart-stage" aria-label="Gráfico principal del presupuesto">
+        <div class="chart-stage-inner">
+          <div class="chart-wrapper" id="chart-wrapper">
+            <svg
+              id="main-donut-svg"
+              class="main-donut-svg"
+              viewBox="0 0 420 420"
+              role="img"
+              aria-labelledby="donut-title donut-desc"
+            >
+              <title id="donut-title">Distribución interactiva del presupuesto personal</title>
+              <desc id="donut-desc">Gráfico circular que muestra el porcentaje y monto asignado a cada categoría.</desc>
+              <circle class="donut-track" cx="210" cy="210" r="154" />
+              <g id="donut-segments"></g>
+            </svg>
+
+            <div class="chart-center-readout" id="chart-center-readout">
+              <span class="center-label" id="center-label">Ingreso mensual</span>
+              <strong class="center-amount" id="center-amount">$2,400</strong>
+              <span class="center-status status-balanced" id="center-status">100% asignado</span>
+              <span class="center-subnote" id="center-subnote">Haz clic en un segmento para editar</span>
+            </div>
+
+            <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+          </div>
+
+          <!-- Leyenda céntrica rápida bajo el gráfico -->
+          <div class="chart-legend" id="chart-legend" aria-label="Resumen por categoría"></div>
+        </div>
+      </section>
+
+      <!-- Controles Interactivos Céntricos -->
+      <section class="controls-section" aria-label="Ajuste interactivo de categorías">
+        <div class="controls-toolbar">
+          <div class="toolbar-left">
+            <h2 class="section-heading">Ajusta tu distribución</h2>
+            <p class="section-subcopy">Mueve los deslizadores o escribe un monto directo. Todo se actualiza en tiempo real.</p>
+          </div>
+          <label class="autobalance-toggle" for="autobalance-checkbox">
+            <input type="checkbox" id="autobalance-checkbox" checked />
+            <span class="toggle-track" aria-hidden="true"></span>
+            <span class="toggle-text">Auto-equilibrar al 100%</span>
+          </label>
+        </div>
+
+        <div class="categories-stack" id="categories-stack">
+          <!-- Generado dinámicamente por app.js -->
+        </div>
+      </section>
+
+      <!-- El Porqué & Diagnóstico de Mejora en vivo -->
+      <section class="insights-section" aria-labelledby="insights-heading">
+        <div class="insights-grid">
+          <article class="insight-card why-card">
+            <div class="insight-card-header">
+              <span class="insight-kicker">Fundamento del método</span>
+              <h2 id="insights-heading" class="insight-title">¿Por qué este presupuesto?</h2>
+            </div>
+            <div id="live-why-content" class="insight-body">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </article>
+
+          <article class="insight-card improve-card">
+            <div class="insight-card-header">
+              <div class="score-header-row">
+                <div>
+                  <span class="insight-kicker">Diagnóstico inteligente</span>
+                  <h2 class="insight-title">Qué se puede mejorar</h2>
+                </div>
+                <div class="health-score-badge" id="health-score-badge" title="Índice de salud financiera de tu distribución">
+                  <span class="score-number" id="score-number">88</span>
+                  <span class="score-label">/ 100</span>
+                </div>
+              </div>
+            </div>
+            <div id="live-improve-content" class="insight-body">
+              <!-- Rellenado dinámicamente -->
+            </div>
+          </article>
+        </div>
+
+        <!-- Proyección anual céntrica -->
+        <div class="projection-banner" id="projection-banner">
+          <!-- Rellenado dinámicamente -->
+        </div>
+
+        <!-- CTA Final para Documento -->
+        <div class="final-print-cta">
+          <div class="final-cta-copy">
+            <h3>¿Listo para guardar o llevar contigo tu plan?</h3>
+            <p>Genera un documento limpio con el gráfico, el desglose completo, el porqué de tu estrategia y las acciones de mejora.</p>
+          </div>
+          <div class="final-cta-buttons">
+            <button type="button" class="btn btn-secondary" id="btn-preview-report">Vista previa del documento</button>
+            <button type="button" class="btn btn-primary" id="btn-direct-print">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                <rect x="6" y="14" width="12" height="8" />
+              </svg>
+              <span>Imprimir / Guardar PDF</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p><strong>BudgetFlow</strong> · Tus datos se guardan automáticamente solo en tu navegador.</p>
+    </footer>
+  </div>
+
+  <!-- MODAL DE VISTA PREVIA DEL DOCUMENTO + CONTENEDOR IMPRIMIBLE -->
+  <div class="report-modal-backdrop" id="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-modal-title" hidden>
+    <div class="report-modal-bar no-print">
+      <div class="report-modal-bar-inner">
+        <span id="report-modal-title" class="modal-bar-title">Vista previa del documento imprimible</span>
+        <div class="modal-bar-actions">
+          <div class="report-name-wrap">
+            <label for="report-owner-input" class="sr-only">Nombre para el reporte</label>
+            <input
+              type="text"
+              id="report-owner-input"
+              class="report-owner-input"
+              placeholder="Tu nombre (opcional para el reporte)"
+              maxlength="60"
+            />
+          </div>
+          <button type="button" class="btn btn-ghost" id="btn-close-report">Cerrar</button>
+          <button type="button" class="btn btn-primary" id="btn-modal-print">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 6 2 18 2 18 9" />
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+              <rect x="6" y="14" width="12" height="8" />
+            </svg>
+            <span>Imprimir o Guardar PDF</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- El documento formal (también visible al imprimir) -->
+    <div class="printable-document-wrap">
+      <article class="printable-document" id="printable-document">
+        <!-- Generado dinámicamente por app.js -->
+      </article>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
