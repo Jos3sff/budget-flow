@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BudgetFlow — Experiencia Interactiva de Presupuesto Personal</title>
+  <title>BudgetFlow — Presupuesto Personal Paso a Paso</title>
   <meta
     name="description"
-    content="Construye tu presupuesto personal paso a paso con BudgetFlow: gráfico interactivo céntrico, aprendizaje en vivo, diagnóstico de mejoras y documento imprimible."
+    content="Construye tu presupuesto personal paso a paso con BudgetFlow: detalla luz, agua, vivienda y gastos diarios, explora gráficos visuales fáciles de entender e imprime tu informe."
   />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -24,7 +24,7 @@
 <body>
   <!-- Experiencia guiada (oculta al imprimir) -->
   <div class="experience-shell no-print" id="experience-shell">
-    <!-- Barra superior minimalista con progreso desbloqueable -->
+    <!-- Barra superior minimalista con 6 pasos desbloqueables -->
     <header class="top-nav">
       <div class="top-nav-inner">
         <button type="button" class="brand-lockup" id="btn-home-brand" title="Volver al paso 1">
@@ -51,16 +51,21 @@
           <span class="step-connector" aria-hidden="true"></span>
           <button type="button" class="step-item is-locked" data-step="3" disabled>
             <span class="step-num">3</span>
-            <span class="step-label">Gráfico</span>
+            <span class="step-label">Tus gastos</span>
           </button>
           <span class="step-connector" aria-hidden="true"></span>
           <button type="button" class="step-item is-locked" data-step="4" disabled>
             <span class="step-num">4</span>
-            <span class="step-label">Diagnóstico</span>
+            <span class="step-label">Gráficos</span>
           </button>
           <span class="step-connector" aria-hidden="true"></span>
           <button type="button" class="step-item is-locked" data-step="5" disabled>
             <span class="step-num">5</span>
+            <span class="step-label">Diagnóstico</span>
+          </button>
+          <span class="step-connector" aria-hidden="true"></span>
+          <button type="button" class="step-item is-locked" data-step="6" disabled>
+            <span class="step-num">6</span>
             <span class="step-label">Documento</span>
           </button>
         </nav>
@@ -74,16 +79,16 @@
         </button>
       </div>
       <div class="progress-rail" aria-hidden="true">
-        <div class="progress-fill" id="progress-fill" style="width: 20%"></div>
+        <div class="progress-fill" id="progress-fill" style="width: 16.66%"></div>
       </div>
     </header>
 
     <!-- Escenario Céntrico de Escenas -->
     <main class="stage-viewport" id="stage-viewport">
-      <!-- ESCENA 1: Punto de Partida (Ingreso, Periodo, Moneda) -->
+      <!-- ESCENA 1: Punto de Partida -->
       <section class="scene is-active" data-scene="1" aria-labelledby="s1-title">
         <div class="scene-inner scene-narrow">
-          <span class="scene-eyebrow">Paso 1 de 5 · Punto de partida</span>
+          <span class="scene-eyebrow">Paso 1 de 6 · Punto de partida</span>
           <h1 id="s1-title" class="scene-title">¿Con cuánto cuentas en este periodo?</h1>
           <p class="scene-lead">
             Ingresa tu dinero disponible después de impuestos. Todo tu presupuesto se construirá alrededor de esta cifra.
@@ -136,9 +141,7 @@
             </div>
           </div>
 
-          <div class="learning-callout" id="s1-callout" aria-live="polite">
-            <!-- Dato informativo dinámico -->
-          </div>
+          <div class="learning-callout" id="s1-callout" aria-live="polite"></div>
 
           <div class="scene-nav-actions centered">
             <button type="button" class="btn btn-primary btn-lg" id="btn-s1-next">
@@ -149,88 +152,130 @@
         </div>
       </section>
 
-      <!-- ESCENA 2: Selección de Filosofía / Método -->
+      <!-- ESCENA 2: Estrategia -->
       <section class="scene" data-scene="2" aria-labelledby="s2-title" hidden>
         <div class="scene-inner">
-          <span class="scene-eyebrow">Paso 2 de 5 · Tu estrategia</span>
+          <span class="scene-eyebrow">Paso 2 de 6 · Tu estrategia</span>
           <h2 id="s2-title" class="scene-title">¿Cómo quieres repartir tu ingreso?</h2>
           <p class="scene-lead">
-            Selecciona una regla para descubrir cómo equilibra tus gastos y qué protege cada bloque.
+            Elige una meta de referencia. Luego podrás ajustarla con tus gastos reales de luz, agua, comida y más.
           </p>
 
           <div class="strategy-showcase">
-            <div class="strategy-grid" id="strategy-grid" role="radiogroup" aria-label="Estrategias de presupuesto">
-              <!-- Generado por app.js -->
-            </div>
-
-            <aside class="strategy-spotlight" id="strategy-spotlight" aria-live="polite">
-              <!-- Vista previa viva con mini gráfico y explicación del porqué -->
-            </aside>
+            <div class="strategy-grid" id="strategy-grid" role="radiogroup" aria-label="Estrategias de presupuesto"></div>
+            <aside class="strategy-spotlight" id="strategy-spotlight" aria-live="polite"></aside>
           </div>
 
           <div class="scene-nav-actions">
             <button type="button" class="btn btn-ghost" data-goto="1">← Atrás</button>
             <button type="button" class="btn btn-primary btn-lg" id="btn-s2-next">
-              <span>Construir mi gráfico</span>
+              <span>Detallar mis gastos</span>
               <span class="btn-arrow" aria-hidden="true">→</span>
             </button>
           </div>
         </div>
       </section>
 
-      <!-- ESCENA 3: El Centro Vivo (Gráfico Grande + Ajuste Minimalista) -->
+      <!-- ESCENA 3: Apartado Detallado de Gastos (Luz, Agua, Electricidad, Vivienda...) -->
       <section class="scene" data-scene="3" aria-labelledby="s3-title" hidden>
         <div class="scene-inner">
           <div class="scene-compact-head">
             <div>
-              <span class="scene-eyebrow" id="s3-strategy-badge">Paso 3 de 5 · Tu presupuesto en vivo</span>
-              <h2 id="s3-title" class="scene-title-sm">Ajusta tu distribución en el centro</h2>
+              <span class="scene-eyebrow">Paso 3 de 6 · Tus gastos del día a día</span>
+              <h2 id="s3-title" class="scene-title-sm">¿Cuánto gastas en cada cosa?</h2>
             </div>
-            <label class="autobalance-pill" for="autobalance-checkbox">
-              <input type="checkbox" id="autobalance-checkbox" checked />
-              <span class="toggle-track" aria-hidden="true"></span>
-              <span>Auto-equilibrar 100%</span>
-            </label>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-sync-strategy" title="Ajustar ejemplos según tu estrategia elegida">
+              Usar montos sugeridos
+            </button>
           </div>
 
-          <!-- El Gráfico Grande Protagonista -->
-          <div class="centerpiece-stage">
-            <div class="chart-wrapper">
-              <svg
-                id="main-donut-svg"
-                class="main-donut-svg"
-                viewBox="0 0 420 420"
-                role="img"
-                aria-labelledby="donut-title donut-desc"
-              >
-                <title id="donut-title">Gráfico circular interactivo del presupuesto</title>
-                <desc id="donut-desc">Muestra la proporción y monto asignado a necesidades, deseos y ahorro.</desc>
-                <circle class="donut-track" cx="210" cy="210" r="154" />
-                <g id="donut-segments"></g>
-              </svg>
+          <!-- Termómetro visual súper fácil de entender -->
+          <div class="thermometer-card" id="s3-thermometer" aria-live="polite"></div>
 
-              <div class="chart-center-readout">
-                <span class="center-label" id="center-label">Ingreso mensual</span>
-                <strong class="center-amount" id="center-amount">$2,400</strong>
-                <span class="center-status status-balanced" id="center-status">100% asignado</span>
-                <span class="center-subnote" id="center-subnote">Toca un bloque para detallar</span>
-              </div>
-
-              <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+          <!-- Tabs limpios de sección + Lista detallada + Gráfico visual vivo -->
+          <div class="expenses-workspace">
+            <div class="expenses-left-col">
+              <div class="section-tabs" id="s3-section-tabs" role="tablist" aria-label="Secciones de gasto"></div>
+              <div class="expense-items-card" id="s3-items-panel"></div>
             </div>
 
-            <!-- Controles Minimalistas Céntricos -->
-            <div class="minimal-sliders-list" id="minimal-sliders-list">
-              <!-- Generado dinámicamente por app.js -->
-            </div>
+            <aside class="expenses-visual-col" id="s3-visual-panel" aria-label="Gráfico visual de tus mayores gastos"></aside>
           </div>
-
-          <!-- Consejo contextual vivo mientras ajustas -->
-          <div class="live-feedback-bar" id="s3-live-feedback" aria-live="polite"></div>
 
           <div class="scene-nav-actions">
             <button type="button" class="btn btn-ghost" data-goto="2">← Cambiar estrategia</button>
             <button type="button" class="btn btn-primary btn-lg" id="btn-s3-next">
+              <span>Ver gráficos grandes</span>
+              <span class="btn-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ESCENA 4: Gráficos Grandes Interactivos (Anillo + Comparativa Fácil) -->
+      <section class="scene" data-scene="4" aria-labelledby="s4-title" hidden>
+        <div class="scene-inner">
+          <div class="scene-compact-head">
+            <div>
+              <span class="scene-eyebrow" id="s4-strategy-badge">Paso 4 de 6 · Vista visual interactiva</span>
+              <h2 id="s4-title" class="scene-title-sm">Así se ve tu presupuesto completo</h2>
+            </div>
+
+            <div class="chart-mode-switch" role="tablist" aria-label="Tipo de gráfico">
+              <button type="button" class="mode-tab is-active" data-chart-mode="donut" role="tab" aria-selected="true">Anillo</button>
+              <button type="button" class="mode-tab" data-chart-mode="bars" role="tab" aria-selected="false">Barras fáciles</button>
+            </div>
+          </div>
+
+          <div class="centerpiece-stage">
+            <!-- Vista A: Gráfico Circular Grande -->
+            <div class="chart-view-panel" id="view-donut">
+              <div class="chart-wrapper">
+                <svg
+                  id="main-donut-svg"
+                  class="main-donut-svg"
+                  viewBox="0 0 420 420"
+                  role="img"
+                  aria-labelledby="donut-title donut-desc"
+                >
+                  <title id="donut-title">Gráfico circular interactivo del presupuesto</title>
+                  <desc id="donut-desc">Muestra la proporción y monto asignado a necesidades, deseos y ahorro.</desc>
+                  <circle class="donut-track" cx="210" cy="210" r="154" />
+                  <g id="donut-segments"></g>
+                </svg>
+
+                <div class="chart-center-readout">
+                  <span class="center-label" id="center-label">Ingreso mensual</span>
+                  <strong class="center-amount" id="center-amount">$2,400</strong>
+                  <span class="center-status status-balanced" id="center-status">100% asignado</span>
+                  <span class="center-subnote" id="center-subnote">Toca un bloque para enfocarte</span>
+                </div>
+
+                <div class="chart-tooltip" id="chart-tooltip" hidden></div>
+              </div>
+            </div>
+
+            <!-- Vista B: Gráfico de Barras Comparativo Súper Claro ("Tu meta vs Lo tuyo") -->
+            <div class="chart-view-panel" id="view-bars" hidden></div>
+
+            <!-- Controles finos sincronizados -->
+            <div class="sliders-head-bar">
+              <span>Ajuste rápido por bloque</span>
+              <label class="autobalance-pill" for="autobalance-checkbox">
+                <input type="checkbox" id="autobalance-checkbox" checked />
+                <span class="toggle-track" aria-hidden="true"></span>
+                <span>Auto-equilibrar 100%</span>
+              </label>
+            </div>
+
+            <div class="minimal-sliders-list" id="minimal-sliders-list"></div>
+          </div>
+
+          <div class="live-feedback-bar" id="s4-live-feedback" aria-live="polite"></div>
+
+          <div class="scene-nav-actions">
+            <button type="button" class="btn btn-ghost" data-goto="3">← Volver a luz, agua y gastos</button>
+            <button type="button" class="btn btn-primary btn-lg" id="btn-s4-next">
               <span>Ver diagnóstico y mejoras</span>
               <span class="btn-arrow" aria-hidden="true">→</span>
             </button>
@@ -238,22 +283,20 @@
         </div>
       </section>
 
-      <!-- ESCENA 4: Radiografía & Qué Se Puede Mejorar -->
-      <section class="scene" data-scene="4" aria-labelledby="s4-title" hidden>
+      <!-- ESCENA 5: Radiografía & Qué Mejorar -->
+      <section class="scene" data-scene="5" aria-labelledby="s5-title" hidden>
         <div class="scene-inner">
-          <span class="scene-eyebrow">Paso 4 de 5 · Diagnóstico inteligente</span>
-          <h2 id="s4-title" class="scene-title">Tu radiografía financiera</h2>
-          <p class="scene-lead" id="s4-lead">
-            Evaluamos la solidez de tu distribución actual, por qué funciona así y dónde puedes ganar margen.
+          <span class="scene-eyebrow">Paso 5 de 6 · Diagnóstico inteligente</span>
+          <h2 id="s5-title" class="scene-title">Tu radiografía financiera</h2>
+          <p class="scene-lead">
+            Analizamos tus gastos reales, el porqué de tu estrategia y simulamos mejoras en un clic.
           </p>
 
-          <div class="diagnosis-layout" id="s4-diagnosis-content">
-            <!-- Generado dinámicamente con anillo animado de score, el porqué, mejoras simulables y proyección -->
-          </div>
+          <div class="diagnosis-layout" id="s5-diagnosis-content"></div>
 
           <div class="scene-nav-actions">
-            <button type="button" class="btn btn-ghost" data-goto="3">← Ajustar gráfico</button>
-            <button type="button" class="btn btn-primary btn-lg" id="btn-s4-next">
+            <button type="button" class="btn btn-ghost" data-goto="4">← Ajustar gráficos</button>
+            <button type="button" class="btn btn-primary btn-lg" id="btn-s5-next">
               <span>Preparar documento imprimible</span>
               <span class="btn-arrow" aria-hidden="true">→</span>
             </button>
@@ -261,13 +304,13 @@
         </div>
       </section>
 
-      <!-- ESCENA 5: Documento Ejecutivo Imprimible -->
-      <section class="scene" data-scene="5" aria-labelledby="s5-title" hidden>
+      <!-- ESCENA 6: Documento Ejecutivo Imprimible -->
+      <section class="scene" data-scene="6" aria-labelledby="s6-title" hidden>
         <div class="scene-inner">
           <div class="doc-scene-toolbar">
             <div>
-              <span class="scene-eyebrow">Paso 5 de 5 · Tu reporte listo</span>
-              <h2 id="s5-title" class="scene-title-sm">Documento personalizado</h2>
+              <span class="scene-eyebrow">Paso 6 de 6 · Tu reporte listo</span>
+              <h2 id="s6-title" class="scene-title-sm">Documento personalizado</h2>
             </div>
 
             <div class="doc-toolbar-controls">
@@ -290,20 +333,18 @@
             </div>
           </div>
 
-          <div class="doc-preview-frame" id="doc-preview-frame">
-            <!-- Espejo visual limpio del documento imprimible -->
-          </div>
+          <div class="doc-preview-frame" id="doc-preview-frame"></div>
 
           <div class="scene-nav-actions">
-            <button type="button" class="btn btn-ghost" data-goto="4">← Volver al diagnóstico</button>
-            <button type="button" class="btn btn-secondary" data-goto="3">Editar montos en el gráfico</button>
+            <button type="button" class="btn btn-ghost" data-goto="5">← Volver al diagnóstico</button>
+            <button type="button" class="btn btn-secondary" data-goto="3">Editar luz, agua y gastos</button>
           </div>
         </div>
       </section>
     </main>
   </div>
 
-  <!-- Contenedor exclusivo de impresión (A4/Carta limpio) -->
+  <!-- Contenedor exclusivo de impresión -->
   <div class="print-only-container" aria-hidden="true">
     <article class="printable-document" id="printable-document"></article>
   </div>

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "budgetflow_experience_v2";
+  const STORAGE_KEY = "budgetflow_experience_v3";
 
   const CURRENCIES = {
     USD: { symbol: "$", code: "USD" },
@@ -28,11 +28,11 @@
       tagline: "Equilibrio clásico sostenible",
       targets: { needs: 50, wants: 30, savings: 20 },
       whySummary:
-        "Popularizada por Elizabeth Warren, divide tu ingreso neto en tres bloques simples para cuidar tu presente y tu futuro sin obsesionarte con cada centavo.",
+        "Divide tu ingreso en tres bloques fáciles de entender para cubrir tu casa y servicios, disfrutar tu presente y ahorrar sin estrés.",
       whyDetails: [
-        "50% para necesidades vitales (vivienda, comida, servicios y transporte).",
-        "30% para estilo de vida y disfrute, evitando la fatiga de presupuestos extremos.",
-        "20% apartado primero para fondo de emergencia, inversión o metas.",
+        "50% para casa, luz, agua, comida y transporte esencial.",
+        "30% para salidas, gustos y entretenimiento sin culpa.",
+        "20% apartado primero para emergencia, metas o inversión.",
       ],
       bestFor: "Ingresos estables que buscan armonía entre bienestar actual y ahorro constante.",
     },
@@ -43,11 +43,11 @@
       tagline: "Fijos controlados + ahorro firme",
       targets: { needs: 60, wants: 20, savings: 20 },
       whySummary:
-        "Ideal cuando el costo de vida esencial supera la mitad de tus ingresos, pero quieres proteger intacta la meta saludable del 20% de ahorro.",
+        "Ideal cuando la renta y los servicios básicos ocupan algo más de la mitad de tu ingreso, pero quieres mantener intacto tu 20% de ahorro.",
       whyDetails: [
-        "Amplía el margen fijo al 60% para absorber renta y alimentación sin estrés.",
-        "Acota los deseos al 20%, enfocándote solo en lo que de verdad valoras.",
-        "Preserva el 20% íntegro para construir patrimonio y colchón financiero.",
+        "Amplía el margen de necesidades al 60% para vivienda, luz, agua y comida.",
+        "Acota los deseos al 20%, priorizando lo que de verdad disfrutas.",
+        "Protege el 20% completo para construir tu colchón financiero.",
       ],
       bestFor: "Ciudades de costo medio-alto o familias que no quieren sacrificar su ahorro.",
     },
@@ -58,13 +58,13 @@
       tagline: "Estabilidad en etapas exigentes",
       targets: { needs: 70, wants: 20, savings: 10 },
       whySummary:
-        "Pensada para momentos donde tus compromisos básicos son altos o estás pagando deudas, permitiéndote respirar sin abandonar el hábito del ahorro.",
+        "Pensada para momentos donde tus compromisos básicos son altos o estás pagando deudas, permitiéndote respirar sin dejar de ahorrar.",
       whyDetails: [
-        "70% reconoce tus obligaciones esenciales reales sin metas irreales.",
-        "20% mantiene un margen moderado para bienestar personal.",
-        "10% asegura que cada periodo sigas sumando reserva o bajando deuda.",
+        "70% reconoce tus obligaciones esenciales reales sin metas imposibles.",
+        "20% conserva un espacio moderado para bienestar personal.",
+        "10% asegura que cada periodo sigas sumando reserva.",
       ],
-      bestFor: "Quienes inician carrera, viven en zonas caras o salen de compromisos financieros.",
+      bestFor: "Quienes inician carrera, tienen costos fijos altos o salen de deudas.",
     },
     "zero-based": {
       id: "zero-based",
@@ -73,70 +73,91 @@
       tagline: "Ahorro e inversión acelerados",
       targets: { needs: 45, wants: 25, savings: 30 },
       whySummary:
-        "Comprime los gastos fijos por debajo del 45% para liberar casi un tercio de todo lo que ganas hacia metas grandes, inversión o independencia.",
+        "Mantiene tus gastos fijos por debajo del 45% para liberar casi un tercio de tu ingreso hacia metas grandes, inversión o libertad financiera.",
       whyDetails: [
-        "Costos fijos bajos (<45%) te vuelven muy resistente ante imprevistos.",
-        "25% permite disfrutar de forma intencional y consciente.",
-        "30% de ahorro multiplica tu ritmo de crecimiento año tras año.",
+        "Gastos fijos bajos (<45%) te dan mucha tranquilidad ante imprevistos.",
+        "25% permite disfrutar con intención y sin culpas.",
+        "30% de ahorro multiplica tu patrimonio año con año.",
       ],
-      bestFor: "Personas enfocadas en comprar vivienda, invertir fuerte o crear libertad financiera.",
+      bestFor: "Quienes desean ahorrar rápido para vivienda, emprender o invertir.",
     },
     custom: {
       id: "custom",
       name: "Distribución a tu medida",
       short: "Libre",
-      tagline: "Personaliza cada porcentaje",
+      tagline: "Basada 100% en tus gastos",
       targets: null,
       whySummary:
-        "Adapta las proporciones exactamente a tu momento de vida, ingresos variables o proyecto puntual antes de optimizar paso a paso.",
+        "Parte directamente de lo que pagas hoy en servicios, comida y gustos para armar un presupuesto realista paso a paso.",
       whyDetails: [
-        "Parte de tus números reales actuales sin restricciones rígidas.",
-        "En el siguiente paso podrás mover cualquier barra y ver el impacto al instante.",
+        "No te fuerza a una fórmula fija: refleja tu realidad exacta.",
+        "Luego te muestra qué porcentaje ocupa cada bloque y cómo optimizarlo.",
       ],
-      bestFor: "Trabajadores independientes, metas temporales o ajustes finos mes a mes.",
+      bestFor: "Ingresos variables, metas puntuales o ajustes finos mes a mes.",
     },
   };
 
+  // Pesos base dentro de cada categoría (suman 1.0 por categoría)
   const DEFAULT_CATEGORIES = [
     {
       id: "needs",
+      tabName: "Casa y Servicios",
       name: "Necesidades esenciales",
-      description: "Vivienda, alimentación, servicios, salud y transporte básico.",
+      description: "Vivienda, luz, agua, gas, internet, comida y transporte.",
       color: "#0F766E",
       percent: 50,
-      expanded: false,
       items: [
-        { id: "n1", name: "Vivienda / Renta", amount: 720 },
-        { id: "n2", name: "Supermercado", amount: 300 },
-        { id: "n3", name: "Servicios y transporte", amount: 180 },
+        { id: "n_home", name: "Vivienda / Renta", icon: "home", weight: 0.56, amount: 680 },
+        { id: "n_bolt", name: "Luz / Electricidad", icon: "bolt", weight: 0.05, amount: 55 },
+        { id: "n_drop", name: "Agua", icon: "drop", weight: 0.02, amount: 25 },
+        { id: "n_flame", name: "Gas / Calefacción", icon: "flame", weight: 0.025, amount: 30 },
+        { id: "n_wifi", name: "Internet y telefonía", icon: "wifi", weight: 0.04, amount: 45 },
+        { id: "n_cart", name: "Supermercado y comida", icon: "cart", weight: 0.205, amount: 245 },
+        { id: "n_car", name: "Transporte / Gasolina", icon: "car", weight: 0.1, amount: 120 },
       ],
     },
     {
       id: "wants",
+      tabName: "Gustos y Ocio",
       name: "Estilo de vida y deseos",
       description: "Salidas, suscripciones, hobbies y compras opcionales.",
       color: "#D97706",
       percent: 30,
-      expanded: false,
       items: [
-        { id: "w1", name: "Salidas y restaurantes", amount: 420 },
-        { id: "w2", name: "Suscripciones y ocio", amount: 140 },
-        { id: "w3", name: "Compras personales", amount: 160 },
+        { id: "w_food", name: "Salidas y restaurantes", icon: "utensils", weight: 0.5, amount: 360 },
+        { id: "w_play", name: "Suscripciones y streaming", icon: "play", weight: 0.085, amount: 60 },
+        { id: "w_bag", name: "Compras y gustos", icon: "bag", weight: 0.415, amount: 300 },
       ],
     },
     {
       id: "savings",
+      tabName: "Ahorro y Metas",
       name: "Ahorro, inversión y metas",
-      description: "Fondo de emergencia, inversión, retiro o abono extra a deudas.",
+      description: "Fondo de emergencia, inversión o metas futuras.",
       color: "#2563EB",
       percent: 20,
-      expanded: false,
       items: [
-        { id: "s1", name: "Fondo de emergencia", amount: 240 },
-        { id: "s2", name: "Inversión / Metas", amount: 240 },
+        { id: "s_shield", name: "Fondo de emergencia", icon: "shield", weight: 0.5, amount: 240 },
+        { id: "s_trend", name: "Inversión / Metas", icon: "trend", weight: 0.5, amount: 240 },
       ],
     },
   ];
+
+  const ICONS = {
+    home: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>',
+    bolt: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+    drop: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>',
+    flame: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+    wifi: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>',
+    cart: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
+    car: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>',
+    utensils: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>',
+    play: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><polygon points="10 9 16 12 10 15 10 9"/></svg>',
+    bag: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+    shield: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    trend: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
+    tag: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+  };
 
   let state = loadState();
   let focusedCategoryId = null;
@@ -161,8 +182,19 @@
     strategySpotlight: document.getElementById("strategy-spotlight"),
     btnS2Next: document.getElementById("btn-s2-next"),
 
-    // Escena 3
-    s3StrategyBadge: document.getElementById("s3-strategy-badge"),
+    // Escena 3 (Gastos detallados)
+    btnSyncStrategy: document.getElementById("btn-sync-strategy"),
+    s3Thermometer: document.getElementById("s3-thermometer"),
+    s3SectionTabs: document.getElementById("s3-section-tabs"),
+    s3ItemsPanel: document.getElementById("s3-items-panel"),
+    s3VisualPanel: document.getElementById("s3-visual-panel"),
+    btnS3Next: document.getElementById("btn-s3-next"),
+
+    // Escena 4 (Gráficos grandes)
+    s4StrategyBadge: document.getElementById("s4-strategy-badge"),
+    chartModeSwitch: document.querySelector(".chart-mode-switch"),
+    viewDonut: document.getElementById("view-donut"),
+    viewBars: document.getElementById("view-bars"),
     autobalanceCheckbox: document.getElementById("autobalance-checkbox"),
     donutSegments: document.getElementById("donut-segments"),
     centerLabel: document.getElementById("center-label"),
@@ -171,14 +203,14 @@
     centerSubnote: document.getElementById("center-subnote"),
     chartTooltip: document.getElementById("chart-tooltip"),
     minimalSlidersList: document.getElementById("minimal-sliders-list"),
-    s3LiveFeedback: document.getElementById("s3-live-feedback"),
-    btnS3Next: document.getElementById("btn-s3-next"),
-
-    // Escena 4
-    s4DiagnosisContent: document.getElementById("s4-diagnosis-content"),
+    s4LiveFeedback: document.getElementById("s4-live-feedback"),
     btnS4Next: document.getElementById("btn-s4-next"),
 
-    // Escena 5
+    // Escena 5 (Diagnóstico)
+    s5DiagnosisContent: document.getElementById("s5-diagnosis-content"),
+    btnS5Next: document.getElementById("btn-s5-next"),
+
+    // Escena 6 (Documento)
     reportOwnerInput: document.getElementById("report-owner-input"),
     btnPrintNow: document.getElementById("btn-print-now"),
     docPreviewFrame: document.getElementById("doc-preview-frame"),
@@ -189,6 +221,9 @@
     return {
       currentStep: 1,
       unlockedStep: 1,
+      activeExpenseTab: "needs",
+      chartMode: "donut",
+      itemsTouched: false,
       income: 2400,
       currency: "USD",
       period: "mensual",
@@ -207,11 +242,14 @@
       if (!parsed || !Array.isArray(parsed.categories) || parsed.categories.length !== 3) {
         return cloneDefaults();
       }
-      const unlocked = Math.max(1, Math.min(5, Number(parsed.unlockedStep) || 1));
+      const unlocked = Math.max(1, Math.min(6, Number(parsed.unlockedStep) || 1));
       const current = Math.max(1, Math.min(unlocked, Number(parsed.currentStep) || 1));
       return {
         currentStep: current,
         unlockedStep: unlocked,
+        activeExpenseTab: parsed.activeExpenseTab || "needs",
+        chartMode: parsed.chartMode === "bars" ? "bars" : "donut",
+        itemsTouched: Boolean(parsed.itemsTouched),
         income: Number.isFinite(Number(parsed.income)) ? Math.max(0, Number(parsed.income)) : 2400,
         currency: CURRENCIES[parsed.currency] ? parsed.currency : "USD",
         period: PERIOD_FACTORS[parsed.period] ? parsed.period : "mensual",
@@ -259,8 +297,40 @@
     return Math.round((state.income * cat.percent) / 100);
   }
 
+  function getItemsSum(cat) {
+    return cat.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  }
+
   function getTotalPercent() {
     return state.categories.reduce((sum, c) => sum + c.percent, 0);
+  }
+
+  function scaleItemsToTargets() {
+    state.categories.forEach((cat) => {
+      const targetCatAmount = (state.income * cat.percent) / 100;
+      const totalWeight = cat.items.reduce((s, i) => s + (i.weight || 0), 0) || cat.items.length;
+      let allocated = 0;
+      cat.items.forEach((item, idx) => {
+        if (idx === cat.items.length - 1) {
+          item.amount = Math.max(0, Math.round(targetCatAmount - allocated));
+        } else {
+          const share = item.weight ? item.weight / totalWeight : 1 / cat.items.length;
+          item.amount = Math.max(0, Math.round(targetCatAmount * share));
+          allocated += item.amount;
+        }
+      });
+    });
+  }
+
+  function syncPercentsFromItems() {
+    if (state.income <= 0) return;
+    state.categories.forEach((cat) => {
+      const sum = getItemsSum(cat);
+      cat.percent = Math.max(0, Math.min(100, Math.round((sum / state.income) * 100)));
+    });
+    const total = getTotalPercent();
+    state.autoBalance = total === 100;
+    detectStrategyMatch();
   }
 
   function animateValue(el, start, end, duration = 450, formatter = (v) => String(Math.round(v))) {
@@ -280,11 +350,11 @@
   }
 
   // =========================================================================
-  // Navegación entre Escenas y Desbloqueo Progresivo
+  // Navegación entre las 6 Escenas
   // =========================================================================
 
   function goToStep(step, directionOverride = null, skipAnim = false) {
-    const target = Math.max(1, Math.min(5, step));
+    const target = Math.max(1, Math.min(6, step));
     if (target > state.unlockedStep) return;
 
     const prev = state.currentStep;
@@ -313,12 +383,12 @@
   }
 
   function unlockAndGo(nextStep) {
-    state.unlockedStep = Math.max(state.unlockedStep, Math.min(5, nextStep));
+    state.unlockedStep = Math.max(state.unlockedStep, Math.min(6, nextStep));
     goToStep(nextStep, "forward");
   }
 
   function renderStepper() {
-    els.progressFill.style.width = `${(state.currentStep / 5) * 100}%`;
+    els.progressFill.style.width = `${(state.currentStep / 6) * 100}%`;
     els.stepper.querySelectorAll(".step-item").forEach((btn) => {
       const stepNum = Number(btn.getAttribute("data-step"));
       const isUnlocked = stepNum <= state.unlockedStep;
@@ -353,15 +423,15 @@
     if (state.income > 0) {
       els.s1Callout.innerHTML = `
         Tu ingreso equivale a <strong>${formatMoney(annualIncome, true)} al año</strong>.
-        Con una estrategia equilibrada del 20%, podrías acumular <strong>${formatMoney(sampleSave)} cada año</strong>.
+        Con una regla equilibrada del 20%, ahorrarías <strong>${formatMoney(sampleSave)} cada año</strong>.
       `;
     } else {
-      els.s1Callout.innerHTML = `Escribe un monto mayor a cero para comenzar a modelar tu presupuesto.`;
+      els.s1Callout.innerHTML = `Escribe un monto mayor a cero para comenzar a repartir tu presupuesto.`;
     }
   }
 
   // =========================================================================
-  // Escena 2: Estrategia & Educación
+  // Escena 2: Estrategia
   // =========================================================================
 
   function renderScene2() {
@@ -415,7 +485,7 @@
     els.strategySpotlight.innerHTML = `
       <div>
         <div class="spotlight-head">
-          <div class="spotlight-ring-box" aria-hidden="true">
+          <div aria-hidden="true">
             <svg viewBox="0 0 80 80" width="76" height="76" style="transform: rotate(-90deg);">
               <circle cx="40" cy="40" r="${r}" fill="none" stroke="#efece4" stroke-width="11" />
               ${circles}
@@ -447,12 +517,301 @@
           cat.percent = strat.targets[cat.id];
         }
       });
+      if (!state.itemsTouched) {
+        scaleItemsToTargets();
+      }
     }
     saveState();
   }
 
   // =========================================================================
-  // Escena 3: El Centro Vivo (Gráfico Grande + Sliders Minimalistas)
+  // Escena 3: Gastos Detallados (Luz, Agua, Electricidad...) + Termómetro + Top Barras
+  // =========================================================================
+
+  function renderScene3Thermometer() {
+    const totalSpent = state.categories.reduce((sum, cat) => sum + getItemsSum(cat), 0);
+    const diff = state.income - totalSpent;
+    const base = Math.max(state.income, totalSpent, 1);
+
+    let headline = "";
+    let badgeText = "";
+    let badgeClass = "status-balanced";
+
+    if (diff > 0) {
+      headline = `Llevas ${formatMoney(totalSpent)} repartidos de ${formatMoney(state.income)}`;
+      badgeText = `Te quedan ${formatMoney(diff)} libres`;
+      badgeClass = "status-surplus";
+    } else if (diff === 0) {
+      headline = `¡Exacto! Repartiste los ${formatMoney(state.income)} completos`;
+      badgeText = "100% asignado";
+      badgeClass = "status-balanced";
+    } else {
+      headline = `Tus gastos suman ${formatMoney(totalSpent)} (sobre ${formatMoney(state.income)})`;
+      badgeText = `Te pasaste por ${formatMoney(Math.abs(diff))}`;
+      badgeClass = "status-deficit";
+    }
+
+    const segmentsHtml = state.categories
+      .map((cat) => {
+        const sum = getItemsSum(cat);
+        const w = (sum / base) * 100;
+        return `<div class="thermo-fill-seg" style="width:${w.toFixed(2)}%; background:${cat.color};" title="${escapeHtml(cat.tabName)}: ${formatMoney(sum)}"></div>`;
+      })
+      .join("");
+
+    const legendHtml = state.categories
+      .map((cat) => {
+        const sum = getItemsSum(cat);
+        const pct = state.income > 0 ? Math.round((sum / state.income) * 100) : 0;
+        return `
+          <span class="thermo-legend-item">
+            <span class="thermo-dot" style="background:${cat.color}"></span>
+            <span>${escapeHtml(cat.tabName)}: <strong>${formatMoney(sum)}</strong> (${pct}%)</span>
+          </span>
+        `;
+      })
+      .join("");
+
+    els.s3Thermometer.innerHTML = `
+      <div class="thermo-header">
+        <span class="thermo-headline">${headline}</span>
+        <span class="thermo-badge ${badgeClass}">${badgeText}</span>
+      </div>
+      <div class="thermo-track" role="img" aria-label="Termómetro visual de gastos">${segmentsHtml}</div>
+      <div class="thermo-legend">${legendHtml}</div>
+    `;
+  }
+
+  function renderScene3Tabs() {
+    els.s3SectionTabs.innerHTML = state.categories
+      .map((cat) => {
+        const active = cat.id === state.activeExpenseTab;
+        const sum = getItemsSum(cat);
+        return `
+          <button
+            type="button"
+            class="section-tab ${active ? "is-active" : ""}"
+            data-tab-id="${cat.id}"
+            style="--tab-color:${cat.color}"
+            role="tab"
+            aria-selected="${active ? "true" : "false"}"
+          >
+            <span class="section-tab-top">
+              <span class="thermo-dot" style="background:${cat.color}"></span>
+              <span>${escapeHtml(cat.tabName)}</span>
+            </span>
+            <strong>${formatMoney(sum)}</strong>
+          </button>
+        `;
+      })
+      .join("");
+
+    els.s3SectionTabs.querySelectorAll(".section-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        state.activeExpenseTab = tab.getAttribute("data-tab-id");
+        saveState();
+        renderScene3Tabs();
+        mountScene3Items();
+      });
+    });
+  }
+
+  function mountScene3Items() {
+    const cat = state.categories.find((c) => c.id === state.activeExpenseTab) || state.categories[0];
+    const curSymbol = (CURRENCIES[state.currency] || CURRENCIES.USD).symbol;
+    const sliderMax = Math.max(100, Math.round(state.income * 0.8));
+
+    const rowsHtml = cat.items
+      .map((item) => {
+        const val = Math.round(Number(item.amount) || 0);
+        const sharePct = state.income > 0 ? Math.round((val / state.income) * 100) : 0;
+        const sliderPct = Math.min(100, Math.round((val / sliderMax) * 100));
+        const iconSvg = ICONS[item.icon] || ICONS.tag;
+
+        return `
+          <div class="expense-item-row" data-item-id="${item.id}" style="--cat-color:${cat.color}">
+            <div class="expense-row-top">
+              <div class="expense-name-wrap">
+                <span class="expense-icon-badge" aria-hidden="true">${iconSvg}</span>
+                <input
+                  type="text"
+                  class="expense-name-input"
+                  value="${escapeHtml(item.name)}"
+                  placeholder="Nombre del gasto"
+                  aria-label="Nombre del gasto"
+                />
+              </div>
+              <div class="expense-row-right">
+                <div class="expense-money-box">
+                  <span>${curSymbol}</span>
+                  <input
+                    type="number"
+                    class="expense-amount-input"
+                    min="0"
+                    step="5"
+                    value="${val}"
+                    aria-label="Monto de ${escapeHtml(item.name)}"
+                  />
+                </div>
+                <button type="button" class="expense-delete-btn" title="Quitar gasto" aria-label="Quitar gasto">&times;</button>
+              </div>
+            </div>
+            <div class="expense-slider-wrap">
+              <input
+                type="range"
+                class="cat-slider expense-slider"
+                min="0"
+                max="${sliderMax}"
+                step="5"
+                value="${Math.min(sliderMax, val)}"
+                style="--slider-pct:${sliderPct}%; --cat-color:${cat.color}"
+                aria-label="Deslizador para ${escapeHtml(item.name)}"
+              />
+              <span class="expense-share-label">${sharePct}%</span>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    els.s3ItemsPanel.innerHTML = `
+      ${rowsHtml}
+      <button type="button" class="btn-add-expense" id="btn-add-expense-item">
+        + Añadir otro gasto en ${escapeHtml(cat.tabName)}
+      </button>
+    `;
+
+    els.s3ItemsPanel.querySelectorAll(".expense-item-row").forEach((row) => {
+      const itemId = row.getAttribute("data-item-id");
+      const item = cat.items.find((i) => i.id === itemId);
+      if (!item) return;
+
+      const nameInput = row.querySelector(".expense-name-input");
+      const amountInput = row.querySelector(".expense-amount-input");
+      const slider = row.querySelector(".expense-slider");
+      const shareLabel = row.querySelector(".expense-share-label");
+      const deleteBtn = row.querySelector(".expense-delete-btn");
+
+      nameInput.addEventListener("input", (e) => {
+        item.name = e.target.value;
+        saveState();
+        renderScene3VisualPanel();
+      });
+
+      const updateItemAmount = (newAmount, source) => {
+        const clean = Math.max(0, Math.round(Number(newAmount) || 0));
+        item.amount = clean;
+        state.itemsTouched = true;
+        syncPercentsFromItems();
+        saveState();
+
+        if (source !== "input") amountInput.value = clean;
+        if (source !== "slider") slider.value = Math.min(sliderMax, clean);
+        const pctWidth = Math.min(100, Math.round((clean / sliderMax) * 100));
+        slider.style.setProperty("--slider-pct", `${pctWidth}%`);
+        shareLabel.textContent = `${state.income > 0 ? Math.round((clean / state.income) * 100) : 0}%`;
+
+        renderScene3Thermometer();
+        renderScene3Tabs();
+        renderScene3VisualPanel();
+      };
+
+      amountInput.addEventListener("input", (e) => updateItemAmount(e.target.value, "input"));
+      slider.addEventListener("input", (e) => updateItemAmount(e.target.value, "slider"));
+
+      deleteBtn.addEventListener("click", () => {
+        cat.items = cat.items.filter((i) => i.id !== itemId);
+        state.itemsTouched = true;
+        syncPercentsFromItems();
+        saveState();
+        renderScene3Thermometer();
+        renderScene3Tabs();
+        mountScene3Items();
+        renderScene3VisualPanel();
+      });
+    });
+
+    document.getElementById("btn-add-expense-item").addEventListener("click", () => {
+      cat.items.push({
+        id: "custom_" + Date.now() + "_" + Math.floor(Math.random() * 100),
+        name: "Otro gasto",
+        icon: "tag",
+        weight: 0,
+        amount: 0,
+      });
+      state.itemsTouched = true;
+      saveState();
+      mountScene3Items();
+      renderScene3VisualPanel();
+    });
+  }
+
+  function renderScene3VisualPanel() {
+    const allItems = [];
+    state.categories.forEach((cat) => {
+      cat.items.forEach((item) => {
+        if ((Number(item.amount) || 0) > 0) {
+          allItems.push({
+            name: item.name || "Sin nombre",
+            amount: Number(item.amount) || 0,
+            color: cat.color,
+          });
+        }
+      });
+    });
+
+    allItems.sort((a, b) => b.amount - a.amount);
+    const topItems = allItems.slice(0, 6);
+    const maxAmt = topItems[0] ? topItems[0].amount : 1;
+
+    // Sumar servicios del hogar (luz, agua, gas, internet)
+    const utilityIds = new Set(["n_bolt", "n_drop", "n_flame", "n_wifi"]);
+    const utilitiesSum = state.categories[0].items
+      .filter((i) => utilityIds.has(i.id))
+      .reduce((s, i) => s + (Number(i.amount) || 0), 0);
+    const utilitiesPct = state.income > 0 ? Math.round((utilitiesSum / state.income) * 100) : 0;
+
+    const barsHtml = topItems.length
+      ? topItems
+          .map((item) => {
+            const w = Math.max(6, Math.round((item.amount / maxAmt) * 100));
+            return `
+              <div class="top-bar-item">
+                <div class="top-bar-meta">
+                  <span>${escapeHtml(item.name)}</span>
+                  <strong>${formatMoney(item.amount)}</strong>
+                </div>
+                <div class="top-bar-track">
+                  <div class="top-bar-fill" style="width:${w}%; background:${item.color};"></div>
+                </div>
+              </div>
+            `;
+          })
+          .join("")
+      : `<p style="font-size:0.84rem; color:var(--ink-muted); margin:0;">Agrega montos a tus gastos para ver en qué se va más dinero.</p>`;
+
+    els.s3VisualPanel.innerHTML = `
+      <div>
+        <h3 class="visual-panel-title">¿En qué se te va más dinero?</h3>
+        <p class="visual-panel-sub">Tus mayores gastos ordenados de mayor a menor</p>
+      </div>
+      <div class="top-bars-list">${barsHtml}</div>
+      <div class="utilities-mini-summary">
+        <strong>Servicios del hogar</strong> (luz, agua, gas e internet):
+        <strong>${formatMoney(utilitiesSum)}</strong> (${utilitiesPct}% de tu ingreso).
+      </div>
+    `;
+  }
+
+  function renderScene3() {
+    renderScene3Thermometer();
+    renderScene3Tabs();
+    mountScene3Items();
+    renderScene3VisualPanel();
+  }
+
+  // =========================================================================
+  // Escena 4: Gráficos Grandes (Anillo + Barras Fáciles)
   // =========================================================================
 
   function setCategoryPercent(catId, newPercent) {
@@ -464,7 +823,7 @@
       targetCat.percent = clamped;
       detectStrategyMatch();
       saveState();
-      renderScene3();
+      renderScene4();
       return;
     }
 
@@ -495,7 +854,7 @@
 
     detectStrategyMatch();
     saveState();
-    renderScene3();
+    renderScene4();
   }
 
   function detectStrategyMatch() {
@@ -634,27 +993,79 @@
     updateSlidersInPlace();
   }
 
+  function renderEasyBars() {
+    const strat = STRATEGIES[state.strategy];
+    const refTargets = (strat && strat.targets) || { needs: 50, wants: 30, savings: 20 };
+
+    const cardsHtml = state.categories
+      .map((cat) => {
+        const targetPct = refTargets[cat.id];
+        const diff = cat.percent - targetPct;
+        let statusText = "Justo en la meta";
+        let statusClass = "status-balanced";
+
+        if (cat.id === "savings") {
+          if (diff >= 0) {
+            statusText = diff === 0 ? "En la meta" : `¡+${diff}% extra de ahorro!`;
+            statusClass = "status-balanced";
+          } else {
+            statusText = `Te faltan ${Math.abs(diff)}% para tu meta`;
+            statusClass = "status-surplus";
+          }
+        } else {
+          if (diff <= 0) {
+            statusText = diff === 0 ? "En la meta" : `Muy bien (${Math.abs(diff)}% debajo)`;
+            statusClass = "status-balanced";
+          } else if (diff <= 10) {
+            statusText = `Un poco arriba (+${diff}%)`;
+            statusClass = "status-surplus";
+          } else {
+            statusText = `Muy alto (+${diff}% sobre la meta)`;
+            statusClass = "status-deficit";
+          }
+        }
+
+        return `
+          <div class="easy-bar-card">
+            <div class="easy-bar-head">
+              <span class="easy-bar-title">
+                <span class="cat-dot" style="background:${cat.color}"></span>
+                <span>${escapeHtml(cat.tabName)}</span>
+              </span>
+              <span class="easy-bar-status ${statusClass}">${statusText}</span>
+            </div>
+
+            <div class="easy-bar-tracks">
+              <div class="easy-track-row">
+                <span class="easy-track-label">Lo ideal</span>
+                <div class="easy-track-outer">
+                  <div class="easy-track-fill is-target" style="width:${targetPct}%"></div>
+                </div>
+                <span class="easy-track-val">${targetPct}%</span>
+              </div>
+              <div class="easy-track-row">
+                <span class="easy-track-label">Lo tuyo</span>
+                <div class="easy-track-outer">
+                  <div class="easy-track-fill" style="width:${Math.min(100, cat.percent)}%; background:${cat.color}"></div>
+                </div>
+                <span class="easy-track-val">${cat.percent}% · ${formatMoney(getCategoryAmount(cat))}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    els.viewBars.innerHTML = `<div class="easy-bars-board">${cardsHtml}</div>`;
+  }
+
   function mountMinimalSliders() {
     const curSymbol = (CURRENCIES[state.currency] || CURRENCIES.USD).symbol;
 
     els.minimalSlidersList.innerHTML = state.categories
       .map((cat) => {
         const amount = getCategoryAmount(cat);
-        const itemsSum = cat.items.reduce((s, item) => s + (Number(item.amount) || 0), 0);
         const focusedClass = focusedCategoryId === cat.id ? "is-focused" : "";
-
-        const itemsHtml = cat.items
-          .map(
-            (item) => `
-            <div class="item-row" data-item-id="${item.id}">
-              <input type="text" class="item-name-input" value="${escapeHtml(item.name)}" placeholder="Concepto" aria-label="Concepto de gasto" />
-              <input type="number" class="item-amount-input" min="0" step="10" value="${Math.round(Number(item.amount) || 0)}" aria-label="Monto del gasto" />
-              <button type="button" class="item-remove-btn" aria-label="Eliminar">&times;</button>
-            </div>
-          `
-          )
-          .join("");
-
         return `
           <div class="min-cat-row ${focusedClass}" data-cat-id="${cat.id}" style="--cat-color:${cat.color}">
             <div class="min-cat-head">
@@ -682,21 +1093,6 @@
                 aria-label="Porcentaje para ${escapeHtml(cat.name)}"
               />
             </div>
-
-            <div class="min-cat-foot">
-              <button type="button" class="toggle-items-btn" aria-expanded="${cat.expanded ? "true" : "false"}">
-                ${cat.expanded ? "▾ Ocultar rubros" : "▸ Detallar rubros reales"} (${cat.items.length})
-              </button>
-              <span style="font-size:0.76rem; color:var(--ink-muted);">Suma: <strong class="items-sum-label">${formatMoney(itemsSum)}</strong></span>
-            </div>
-
-            <div class="items-drawer" ${cat.expanded ? "" : "hidden"}>
-              ${itemsHtml}
-              <div class="items-drawer-actions">
-                <button type="button" class="btn-mini btn-add-item">+ Añadir rubro</button>
-                <button type="button" class="btn-mini btn-mini-dark btn-apply-items">Aplicar ${formatMoney(itemsSum)}</button>
-              </div>
-            </div>
           </div>
         `;
       })
@@ -704,63 +1100,14 @@
 
     els.minimalSlidersList.querySelectorAll(".min-cat-row").forEach((row) => {
       const catId = row.getAttribute("data-cat-id");
-      const cat = state.categories.find((c) => c.id === catId);
-      if (!cat) return;
-
       row.querySelector(".cat-slider").addEventListener("input", (e) => {
         setCategoryPercent(catId, Number(e.target.value));
       });
-
       row.querySelector(".cat-amount-input").addEventListener("change", (e) => {
         const val = Math.max(0, Number(e.target.value) || 0);
         if (state.income > 0) {
           setCategoryPercent(catId, Math.round((val / state.income) * 100));
         }
-      });
-
-      row.querySelector(".toggle-items-btn").addEventListener("click", () => {
-        cat.expanded = !cat.expanded;
-        saveState();
-        mountMinimalSliders();
-      });
-
-      row.querySelector(".btn-add-item").addEventListener("click", () => {
-        cat.items.push({ id: "i_" + Date.now(), name: "Nuevo gasto", amount: 0 });
-        cat.expanded = true;
-        saveState();
-        mountMinimalSliders();
-      });
-
-      row.querySelector(".btn-apply-items").addEventListener("click", () => {
-        const sum = cat.items.reduce((s, i) => s + (Number(i.amount) || 0), 0);
-        if (state.income > 0) {
-          setCategoryPercent(catId, Math.round((sum / state.income) * 100));
-        }
-      });
-
-      row.querySelectorAll(".item-row").forEach((itemRow) => {
-        const itemId = itemRow.getAttribute("data-item-id");
-        const item = cat.items.find((i) => i.id === itemId);
-        if (!item) return;
-
-        itemRow.querySelector(".item-name-input").addEventListener("input", (e) => {
-          item.name = e.target.value;
-          saveState();
-        });
-
-        itemRow.querySelector(".item-amount-input").addEventListener("input", (e) => {
-          item.amount = Math.max(0, Number(e.target.value) || 0);
-          saveState();
-          const sum = cat.items.reduce((s, i) => s + (Number(i.amount) || 0), 0);
-          row.querySelector(".items-sum-label").textContent = formatMoney(sum);
-          row.querySelector(".btn-apply-items").textContent = `Aplicar ${formatMoney(sum)}`;
-        });
-
-        itemRow.querySelector(".item-remove-btn").addEventListener("click", () => {
-          cat.items = cat.items.filter((i) => i.id !== itemId);
-          saveState();
-          mountMinimalSliders();
-        });
       });
     });
   }
@@ -788,14 +1135,10 @@
       const slider = row.querySelector(".cat-slider");
       slider.value = cat.percent;
       slider.style.setProperty("--slider-pct", `${cat.percent}%`);
-
-      const sum = cat.items.reduce((s, i) => s + (Number(i.amount) || 0), 0);
-      row.querySelector(".items-sum-label").textContent = formatMoney(sum);
-      row.querySelector(".btn-apply-items").textContent = `Aplicar ${formatMoney(sum)}`;
     });
   }
 
-  function renderScene3LiveTip() {
+  function renderScene4LiveTip() {
     const needs = state.categories[0].percent;
     const wants = state.categories[1].percent;
     const savings = state.categories[2].percent;
@@ -804,29 +1147,40 @@
     const annualSave = Math.round((state.income * savings) / 100) * perYear;
 
     if (total > 100) {
-      els.s3LiveFeedback.innerHTML = `<strong>Alerta:</strong> Estás asignando ${total}% de tu ingreso. Reduce ${total - 100}% para evitar déficits.`;
+      els.s4LiveFeedback.innerHTML = `<strong>Alerta:</strong> Estás asignando ${total}% de tu ingreso. Reduce ${total - 100}% para no gastar más de lo que entra.`;
     } else if (total < 100) {
-      els.s3LiveFeedback.innerHTML = `Tienes <strong>${100 - total}% sin asignar</strong>. Dales un destino (idealmente a ahorro) para que cada unidad trabaje por ti.`;
+      els.s4LiveFeedback.innerHTML = `Tienes <strong>${100 - total}% libre sin asignar</strong>. Puedes moverlo a ahorro o regresar a tus gastos.`;
     } else if (savings >= 25) {
-      els.s3LiveFeedback.innerHTML = `<strong>Ritmo acelerado:</strong> Con el ${savings}% en ahorro reunirás <strong>${formatMoney(annualSave)} en 1 año</strong>.`;
+      els.s4LiveFeedback.innerHTML = `<strong>Ritmo acelerado:</strong> Con el ${savings}% en ahorro reunirás <strong>${formatMoney(annualSave)} en 1 año</strong>.`;
     } else if (needs > 65) {
-      els.s3LiveFeedback.innerHTML = `<strong>Dato clave:</strong> Tus fijos ocupan el ${needs}%. En el siguiente paso veremos cómo blindar tu margen.`;
+      els.s4LiveFeedback.innerHTML = `<strong>Dato clave:</strong> Tus fijos ocupan el ${needs}%. En el siguiente paso revisamos cómo optimizar servicios y vivienda.`;
     } else {
-      els.s3LiveFeedback.innerHTML = `<strong>Balance saludable:</strong> Estás proyectando ahorrar <strong>${formatMoney(annualSave)} al año</strong> manteniendo ${wants}% para disfrutar.`;
+      els.s4LiveFeedback.innerHTML = `<strong>Balance saludable:</strong> Proyectas ahorrar <strong>${formatMoney(annualSave)} al año</strong> conservando ${wants}% para gustos.`;
     }
   }
 
-  function renderScene3() {
+  function renderScene4() {
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
-    els.s3StrategyBadge.textContent = `Paso 3 de 5 · Estrategia: ${strat.name}`;
+    els.s4StrategyBadge.textContent = `Paso 4 de 6 · Estrategia: ${strat.name}`;
     els.autobalanceCheckbox.checked = state.autoBalance;
+
+    els.chartModeSwitch.querySelectorAll(".mode-tab").forEach((tab) => {
+      const active = tab.getAttribute("data-chart-mode") === state.chartMode;
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", active ? "true" : "false");
+    });
+
+    els.viewDonut.hidden = state.chartMode !== "donut";
+    els.viewBars.hidden = state.chartMode !== "bars";
+
     renderChart();
+    renderEasyBars();
     updateSlidersInPlace();
-    renderScene3LiveTip();
+    renderScene4LiveTip();
   }
 
   // =========================================================================
-  // Motor de Diagnóstico & Escena 4 (Simulador de Mejoras)
+  // Motor de Diagnóstico & Escena 5
   // =========================================================================
 
   function analyzeBudget() {
@@ -844,6 +1198,13 @@
     const emergencyTarget = needsAmount * 3;
     const periodsToEmergency = savingsAmount > 0 ? Math.ceil(emergencyTarget / savingsAmount) : null;
 
+    // Análisis específico de servicios del hogar (luz, agua, gas, internet)
+    const utilityIds = new Set(["n_bolt", "n_drop", "n_flame", "n_wifi"]);
+    const utilitiesSum = state.categories[0].items
+      .filter((i) => utilityIds.has(i.id))
+      .reduce((s, i) => s + (Number(i.amount) || 0), 0);
+    const utilitiesPct = state.income > 0 ? Math.round((utilitiesSum / state.income) * 100) : 0;
+
     let score = 78;
     const strengths = [];
     const improvements = [];
@@ -854,7 +1215,7 @@
       improvements.push({
         level: "alert",
         tag: "Ingreso en cero",
-        text: "Regresa al Paso 1 para ingresar tu ingreso neto y calcular recomendaciones reales.",
+        text: "Regresa al Paso 1 para ingresar tu ingreso neto.",
         simAction: null,
       });
     } else {
@@ -863,7 +1224,7 @@
         strengths.push(`Ahorro sobresaliente (${savings}%), sumando ${formatMoney(annualSavings)} al año.`);
       } else if (savings >= 20) {
         score += 12;
-        strengths.push(`Cumples la meta estándar del ${savings}% de ahorro (${formatMoney(annualSavings)} al año).`);
+        strengths.push(`Cumples la meta saludable del ${savings}% de ahorro (${formatMoney(annualSavings)} al año).`);
       } else if (savings >= 10) {
         score += 2;
         const boost = Math.min(5, Math.max(1, wants - 15));
@@ -876,7 +1237,7 @@
               ? { label: `Simular +${boost}% de Deseos a Ahorro`, deltas: { wants: -boost, savings: boost } }
               : null,
         });
-        actionSteps.push(`Automatiza tu ahorro el mismo día que recibes ingresos y busca elevarlo gradualmente hacia el 20%.`);
+        actionSteps.push(`Automatiza tu ahorro el mismo día que recibes ingresos y busca acercarte al 20%.`);
       } else {
         score -= 22;
         const boost = Math.min(8, Math.max(5, wants - 10));
@@ -899,10 +1260,10 @@
         improvements.push({
           level: "warn",
           tag: "Fijos moderados-altos",
-          text: `Tus necesidades ocupan ${needs}%. Optimizar servicios o supermercado un 5% liberaría ${formatMoney(state.income * 0.05 * perYear)} anuales.`,
+          text: `Tus necesidades ocupan ${needs}%. Optimizar servicios (luz/internet) o supermercado un 5% liberaría ${formatMoney(state.income * 0.05 * perYear)} al año.`,
           simAction: { label: "Simular -5% en Necesidades hacia Ahorro", deltas: { needs: -5, savings: 5 } },
         });
-        actionSteps.push(`Renegocia o compara tus 2 gastos fijos mayores para bajar la carga por debajo del 55%.`);
+        actionSteps.push(`Revisa tus recibos de luz, internet y supermercado para recuperar un 5% hacia tu ahorro.`);
       } else {
         score -= 16;
         improvements.push({
@@ -911,7 +1272,18 @@
           text: `El ${needs}% en necesidades reduce demasiado tu oxígeno financiero.`,
           simAction: { label: "Simular alivio de -5% a Ahorro", deltas: { needs: -5, savings: 5 } },
         });
-        actionSteps.push(`Evita nuevas cuotas o compromisos fijos hasta reducir necesidades bajo el 60%.`);
+        actionSteps.push(`Evita nuevas cuotas fijas hasta bajar necesidades por debajo del 60%.`);
+      }
+
+      if (utilitiesPct > 12) {
+        improvements.push({
+          level: "warn",
+          tag: "Servicios básicos altos",
+          text: `Luz, agua, gas e internet suman ${formatMoney(utilitiesSum)} (${utilitiesPct}% de tu ingreso). Revisa tarifas de internet/telefonía o consumo eléctrico.`,
+          simAction: null,
+        });
+      } else if (utilitiesSum > 0) {
+        strengths.push(`Tus servicios del hogar (luz, agua, gas e internet) están bien controlados en ${utilitiesPct}% (${formatMoney(utilitiesSum)}).`);
       }
 
       if (wants > 35) {
@@ -919,19 +1291,12 @@
         improvements.push({
           level: "warn",
           tag: "Deseos elevados",
-          text: `Destinas ${wants}% a estilo de vida (${formatMoney((state.income * wants) / 100)}). Recortar 5% aquí acelera tus metas.`,
+          text: `Destinas ${wants}% a gustos (${formatMoney((state.income * wants) / 100)}). Recortar 5% aquí acelera tus metas.`,
           simAction: { label: "Mover 5% a Ahorro", deltas: { wants: -5, savings: 5 } },
         });
-        actionSteps.push(`Asigna un tope semanal para salidas y cancela suscripciones poco usadas.`);
+        actionSteps.push(`Fija un tope semanal para salidas y revisa suscripciones poco usadas.`);
       } else if (wants >= 15 && wants <= 30) {
-        strengths.push(`Equilibrio sano en estilo de vida (${wants}%), sostenible sin privaciones extremas.`);
-      } else if (wants < 10) {
-        improvements.push({
-          level: "warn",
-          tag: "Presupuesto muy estricto",
-          text: `Un ${wants}% de ocio suele ser difícil de mantener varios meses seguidos.`,
-          simAction: null,
-        });
+        strengths.push(`Equilibrio sano en estilo de vida (${wants}%), sostenible sin privaciones.`);
       }
 
       if (diffPct < 0) {
@@ -942,7 +1307,7 @@
           text: `Asignas ${totalPct}% del ingreso (exceso de ${formatMoney(Math.abs(diffAmount))}).`,
           simAction: { label: "Reequilibrar al 100% ahora", rebalance: true },
         });
-        actionSteps.unshift(`Recorta ${formatMoney(Math.abs(diffAmount))} hoy mismo para no financiar gastos con deuda.`);
+        actionSteps.unshift(`Recorta ${formatMoney(Math.abs(diffAmount))} hoy mismo para no financiarte con deuda.`);
       } else if (diffPct > 0) {
         score -= 4;
         improvements.unshift({
@@ -961,7 +1326,7 @@
           `Con ${formatMoney(savingsAmount)} por periodo completarás tu fondo de emergencia (3x = ${formatMoney(emergencyTarget)}) en ${periodsToEmergency} ${state.period === "anual" ? "años" : "periodos"}.`
         );
       }
-      actionSteps.push(`Revisa tus números el primer día de cada mes y compara lo planeado con lo real.`);
+      actionSteps.push(`Revisa tus recibos y gastos reales el primer día de cada mes.`);
     }
 
     score = Math.max(0, Math.min(100, Math.round(score)));
@@ -984,6 +1349,8 @@
       annualSavings,
       emergencyTarget,
       periodsToEmergency,
+      utilitiesSum,
+      utilitiesPct,
       score,
       verdict,
       strengths,
@@ -997,7 +1364,7 @@
     if (simAction.rebalance) {
       state.autoBalance = true;
       setCategoryPercent("needs", state.categories[0].percent);
-      renderScene4(true);
+      renderScene5(true);
       return;
     }
     if (simAction.deltas) {
@@ -1008,11 +1375,11 @@
       });
       detectStrategyMatch();
       saveState();
-      renderScene4(true);
+      renderScene5(true);
     }
   }
 
-  function renderScene4(animateScore = false) {
+  function renderScene5(animateScore = false) {
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     const analysis = analyzeBudget();
     const r = 46;
@@ -1045,7 +1412,7 @@
           .join("")
       : `<div class="improve-item"><span class="tag-badge tag-ok">Óptimo</span> Tu reparto actual no presenta alertas críticas. ¡Gran trabajo!</div>`;
 
-    els.s4DiagnosisContent.innerHTML = `
+    els.s5DiagnosisContent.innerHTML = `
       <div class="diagnosis-hero">
         <div class="score-ring-wrap">
           <svg class="score-ring-svg" viewBox="0 0 112 112" width="112" height="112">
@@ -1065,15 +1432,15 @@
             />
           </svg>
           <div class="score-ring-center">
-            <strong id="s4-score-num">${animateScore ? 0 : analysis.score}</strong>
+            <strong id="s5-score-num">${animateScore ? 0 : analysis.score}</strong>
             <span>/ 100</span>
           </div>
         </div>
         <div class="diagnosis-hero-copy">
           <h3>${escapeHtml(analysis.verdict)}</h3>
           <p>
-            Con la estrategia <strong>${escapeHtml(strat.name)}</strong> sobre un ingreso ${PERIOD_FACTORS[state.period].label} de <strong>${formatMoney(state.income, true)}</strong>,
-            estás protegiendo un ahorro anual proyectado de <strong>${formatMoney(analysis.annualSavings)}</strong>.
+            Con la estrategia <strong>${escapeHtml(strat.name)}</strong> sobre tu ingreso ${PERIOD_FACTORS[state.period].label} de <strong>${formatMoney(state.income, true)}</strong>,
+            proyectas un ahorro anual de <strong>${formatMoney(analysis.annualSavings)}</strong>.
           </p>
         </div>
       </div>
@@ -1113,13 +1480,13 @@
     if (animateScore) {
       requestAnimationFrame(() => {
         const arc = document.getElementById("score-ring-arc");
-        const numEl = document.getElementById("s4-score-num");
+        const numEl = document.getElementById("s5-score-num");
         if (arc) arc.setAttribute("stroke-dashoffset", targetOffset.toFixed(2));
         if (numEl) animateValue(numEl, 0, analysis.score, 650);
       });
     }
 
-    els.s4DiagnosisContent.querySelectorAll(".btn-simulate").forEach((btn) => {
+    els.s5DiagnosisContent.querySelectorAll(".btn-simulate").forEach((btn) => {
       const idx = Number(btn.getAttribute("data-sim-idx"));
       const imp = analysis.improvements[idx];
       if (imp && imp.simAction) {
@@ -1129,7 +1496,7 @@
   }
 
   // =========================================================================
-  // Escena 5: Documento Ejecutivo Imprimible
+  // Escena 6: Documento Ejecutivo Imprimible
   // =========================================================================
 
   function buildDocumentMarkup() {
@@ -1253,7 +1620,7 @@
       </section>
 
       <section class="doc-section">
-        <h2 class="doc-section-title">2. Desglose de rubros contemplados</h2>
+        <h2 class="doc-section-title">2. Desglose detallado (servicios y vida diaria)</h2>
         <div class="doc-items-grid">${itemizedCards}</div>
       </section>
 
@@ -1278,7 +1645,7 @@
     `;
   }
 
-  function renderScene5() {
+  function renderScene6() {
     if (document.activeElement !== els.reportOwnerInput) {
       els.reportOwnerInput.value = state.ownerName;
     }
@@ -1295,12 +1662,12 @@
     if (state.currentStep === 1) renderScene1();
     if (state.currentStep === 2) renderScene2();
     if (state.currentStep === 3) renderScene3();
-    if (state.currentStep === 4) renderScene4(animate);
-    if (state.currentStep === 5) renderScene5();
+    if (state.currentStep === 4) renderScene4();
+    if (state.currentStep === 5) renderScene5(animate);
+    if (state.currentStep === 6) renderScene6();
   }
 
   function bindEvents() {
-    // Stepper clicks
     els.stepper.querySelectorAll(".step-item").forEach((btn) => {
       btn.addEventListener("click", () => {
         const target = Number(btn.getAttribute("data-step"));
@@ -1319,6 +1686,7 @@
     // Escena 1
     els.incomeInput.addEventListener("input", (e) => {
       state.income = Math.max(0, Number(e.target.value) || 0);
+      if (!state.itemsTouched) scaleItemsToTargets();
       saveState();
       renderScene1();
     });
@@ -1327,6 +1695,7 @@
       btn.addEventListener("click", () => {
         state.income = Number(btn.getAttribute("data-income"));
         els.incomeInput.value = state.income;
+        if (!state.itemsTouched) scaleItemsToTargets();
         saveState();
         renderScene1();
       });
@@ -1355,11 +1724,39 @@
 
     // Escena 2
     els.btnS2Next.addEventListener("click", () => {
-      mountMinimalSliders();
+      if (!state.itemsTouched) scaleItemsToTargets();
       unlockAndGo(3);
     });
 
     // Escena 3
+    els.btnSyncStrategy.addEventListener("click", () => {
+      const strat = STRATEGIES[state.strategy];
+      if (strat && strat.targets) {
+        state.categories.forEach((c) => {
+          c.percent = strat.targets[c.id];
+        });
+      }
+      state.itemsTouched = false;
+      scaleItemsToTargets();
+      saveState();
+      renderScene3();
+    });
+
+    els.btnS3Next.addEventListener("click", () => {
+      syncPercentsFromItems();
+      saveState();
+      unlockAndGo(4);
+    });
+
+    // Escena 4
+    els.chartModeSwitch.querySelectorAll(".mode-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        state.chartMode = tab.getAttribute("data-chart-mode");
+        saveState();
+        renderScene4();
+      });
+    });
+
     els.autobalanceCheckbox.addEventListener("change", (e) => {
       state.autoBalance = e.target.checked;
       if (state.autoBalance && getTotalPercent() !== 100) {
@@ -1367,23 +1764,23 @@
         return;
       }
       saveState();
-      renderScene3();
+      renderScene4();
     });
 
-    els.btnS3Next.addEventListener("click", () => unlockAndGo(4));
-
-    // Escena 4
     els.btnS4Next.addEventListener("click", () => unlockAndGo(5));
 
     // Escena 5
+    els.btnS5Next.addEventListener("click", () => unlockAndGo(6));
+
+    // Escena 6
     els.reportOwnerInput.addEventListener("input", (e) => {
       state.ownerName = e.target.value;
       saveState();
-      renderScene5();
+      renderScene6();
     });
 
     els.btnPrintNow.addEventListener("click", () => {
-      renderScene5();
+      renderScene6();
       window.print();
     });
 
