@@ -194,6 +194,7 @@
     s4StrategyBadge: document.getElementById("s4-strategy-badge"),
     chartModeSwitch: document.querySelector(".chart-mode-switch"),
     modeSwitchGlider: document.getElementById("mode-switch-glider"),
+    chartStageViewport: document.getElementById("chart-stage-viewport"),
     viewDonut: document.getElementById("view-donut"),
     viewBars: document.getElementById("view-bars"),
     autobalanceCheckbox: document.getElementById("autobalance-checkbox"),
@@ -351,12 +352,96 @@
   }
 
   // =========================================================================
-  // Navegación entre las 6 Escenas
+  // Helpers de Animación Out -> In & Navegación entre las 6 Escenas
   // =========================================================================
 
-  const sceneExitTimers = new WeakMap();
+  const sceneTransition = { token: 0, anim: null };
+  const strategySwap = { token: 0, anims: [] };
+  const expenseTabSwap = { token: 0, anim: null, heightTimer: null };
+  const chartModeSwap = { token: 0, anim: null, heightTimer: null };
 
-  function goToStep(step, directionOverride = null, skipAnim = false) {
+  function prefersReducedMotion() {
+    return Boolean(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+
+  function runSingleAnim(el, keyframes, options, tracker) {
+    if (!el || typeof el.animate !== "function" || prefersReducedMotion()) {
+      return Promise.resolve({ finished: true, anim: null });
+    }
+    const anim = el.animate(keyframes, options);
+    if (tracker) tracker.anim = anim;
+    return anim.finished
+      .then(() => ({ finished: true, anim }))
+      .catch(() => ({ finished: false, anim }))
+      .finally(() => {
+        if (tracker && tracker.anim === anim) {
+          tracker.anim = null;
+        }
+      });
+  }
+
+  function resetContainerHeight(container, tracker) {
+    if (!container) return;
+    if (tracker && tracker.heightTimer) {
+      clearTimeout(tracker.heightTimer);
+      tracker.heightTimer = null;
+    }
+    container.style.height = "";
+    container.style.overflow = "";
+    container.style.transition = "";
+  }
+
+  function animateContainerHeight(container, updateDomFn, tracker) {
+    if (!container) {
+      updateDomFn();
+      return;
+    }
+    if (tracker && tracker.heightTimer) {
+      clearTimeout(tracker.heightTimer);
+      tracker.heightTimer = null;
+    }
+    const startHeight = container.getBoundingClientRect().height;
+    updateDomFn();
+
+    if (prefersReducedMotion()) {
+      resetContainerHeight(container, tracker);
+      return;
+    }
+
+    container.style.transition = "none";
+    container.style.height = "auto";
+    container.style.overflow = "hidden";
+    const endHeight = container.getBoundingClientRect().height;
+
+    if (Math.abs(endHeight - startHeight) < 2) {
+      resetContainerHeight(container, tracker);
+      return;
+    }
+
+    container.style.height = `${startHeight}px`;
+    void container.offsetHeight;
+    container.style.transition = "height 0.28s cubic-bezier(0.16, 1, 0.3, 1)";
+    container.style.height = `${endHeight}px`;
+
+    const timerId = setTimeout(() => {
+      if (tracker && tracker.heightTimer !== timerId) return;
+      container.style.height = "";
+      container.style.overflow = "";
+      container.style.transition = "";
+      if (tracker) tracker.heightTimer = null;
+    }, 300);
+    if (tracker) tracker.heightTimer = timerId;
+  }
+
+  function getVisibleSceneEl() {
+    return (
+      Array.from(els.scenes).find((sec) => !sec.hidden && sec.classList.contains("is-active")) ||
+      Array.from(els.scenes).find((sec) => !sec.hidden) ||
+      null
+    );
+  }
+
+  async function goToStep(step, directionOverride = null, skipAnim = false) {
     const target = Math.max(1, Math.min(6, step));
     if (target > state.unlockedStep) return;
 
@@ -364,56 +449,108 @@
     if (target === prev && !skipAnim) return;
 
     const direction = directionOverride || (target >= prev ? "forward" : "backward");
+    const dirSign = direction === "forward" ? 1 : -1;
+    const token = ++sceneTransition.token;
+
+    const targetSec = Array.from(els.scenes).find((sec) => Number(sec.getAttribute("data-scene")) === target);
+    const visibleSec = getVisibleSceneEl();
+
+    let startOpacity = 1;
+    let startTransform = "translateX(0px) scale(1)";
+    if (visibleSec) {
+      const cs = getComputedStyle(visibleSec);
+      startOpacity = Number.isFinite(parseFloat(cs.opacity)) ? parseFloat(cs.opacity) : 1;
+      startTransform = cs.transform === "none" ? "translateX(0px) scale(1)" : cs.transform;
+    }
+
+    if (sceneTransition.anim) {
+      sceneTransition.anim.cancel();
+      sceneTransition.anim = null;
+    }
+
     state.currentStep = target;
     saveState();
+    renderStepper();
 
-    els.scenes.forEach((sec) => {
-      const sceneNum = Number(sec.getAttribute("data-scene"));
-      const existingTimer = sceneExitTimers.get(sec);
-      if (existingTimer) {
-        clearTimeout(existingTimer);
-        sceneExitTimers.delete(sec);
-      }
+    if (skipAnim || prefersReducedMotion() || !targetSec) {
+      els.scenes.forEach((sec) => {
+        const isTarget = sec === targetSec;
+        sec.hidden = !isTarget;
+        sec.classList.toggle("is-active", isTarget);
+      });
+      renderCurrentScene(false);
+      window.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
 
-      sec.classList.remove(
-        "anim-forward",
-        "anim-backward",
-        "anim-exit-forward",
-        "anim-exit-backward",
-        "is-leaving",
-        "is-active"
+    if (window.scrollY > 40) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Caso 1: Volver a la misma escena que todavía estaba saliendo
+    if (visibleSec === targetSec) {
+      targetSec.hidden = false;
+      targetSec.classList.add("is-active");
+      renderCurrentScene(false);
+      const res = await runSingleAnim(
+        targetSec,
+        [
+          { opacity: startOpacity, transform: startTransform },
+          { opacity: 1, transform: "translateX(0px) scale(1)" },
+        ],
+        { duration: 190, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
+        sceneTransition
       );
+      if (res.finished && token === sceneTransition.token && res.anim) {
+        res.anim.cancel();
+      }
+      return;
+    }
 
-      if (sceneNum === target) {
-        sec.hidden = false;
-        if (!skipAnim) {
-          void sec.offsetWidth;
-          sec.classList.add(direction === "forward" ? "anim-forward" : "anim-backward");
-        }
-        sec.classList.add("is-active");
-      } else if (!skipAnim && sceneNum === prev) {
-        sec.hidden = false;
-        void sec.offsetWidth;
-        sec.classList.add("is-leaving", direction === "forward" ? "anim-exit-forward" : "anim-exit-backward");
-        const timerId = setTimeout(() => {
-          sec.classList.remove("is-leaving", "anim-exit-forward", "anim-exit-backward");
-          if (state.currentStep !== sceneNum) {
-            sec.hidden = true;
-          }
-          sceneExitTimers.delete(sec);
-        }, 240);
-        sceneExitTimers.set(sec, timerId);
-      } else {
+    // Asegurar que solo una escena sea visible durante la salida
+    els.scenes.forEach((sec) => {
+      if (sec !== visibleSec) {
         sec.hidden = true;
+        sec.classList.remove("is-active");
       }
     });
 
-    renderStepper();
-    renderCurrentScene(!skipAnim);
-    if (!skipAnim && window.scrollY > 40) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (skipAnim) {
-      window.scrollTo({ top: 0, behavior: "auto" });
+    // Fase 1: Salida limpia de la escena actual (sin superposición)
+    if (visibleSec) {
+      const exitDur = Math.max(80, Math.round(160 * Math.max(0.2, startOpacity)));
+      const exitRes = await runSingleAnim(
+        visibleSec,
+        [
+          { opacity: startOpacity, transform: startTransform },
+          { opacity: 0, transform: `translateX(${-16 * dirSign}px) scale(0.992)` },
+        ],
+        { duration: exitDur, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" },
+        sceneTransition
+      );
+      if (token !== sceneTransition.token) {
+        return;
+      }
+      visibleSec.hidden = true;
+      visibleSec.classList.remove("is-active");
+      if (exitRes.anim) exitRes.anim.cancel();
+    }
+
+    // Fase 2: Montaje y entrada limpia de la nueva escena
+    targetSec.hidden = false;
+    targetSec.classList.add("is-active");
+    renderCurrentScene(true);
+
+    const enterRes = await runSingleAnim(
+      targetSec,
+      [
+        { opacity: 0, transform: `translateX(${18 * dirSign}px) scale(0.99)` },
+        { opacity: 1, transform: "translateX(0px) scale(1)" },
+      ],
+      { duration: 260, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
+      sceneTransition
+    );
+    if (enterRes.finished && token === sceneTransition.token && enterRes.anim) {
+      enterRes.anim.cancel();
     }
   }
 
@@ -469,7 +606,7 @@
   // Escena 2: Estrategia
   // =========================================================================
 
-  function renderScene2(animateSwap = false) {
+  async function renderScene2(animateSwap = false) {
     if (!els.strategyGrid.querySelector(".strategy-card")) {
       els.strategyGrid.innerHTML = Object.values(STRATEGIES)
         .map((s) => {
@@ -564,19 +701,27 @@
           <strong>Ideal para:</strong> ${escapeHtml(strat.bestFor)}
         </div>
       `;
-    } else {
-      computedSegs.forEach((seg) => {
-        const arc = existingSvg.querySelector(`.spotlight-ring-arc[data-seg-idx="${seg.idx}"]`);
-        if (arc) {
-          arc.setAttribute("stroke-dasharray", seg.dashArray);
-          arc.setAttribute("stroke-dashoffset", seg.dashOffset);
-        }
-      });
+      return;
+    }
 
-      const titleEl = els.strategySpotlight.querySelector("#spotlight-title");
-      const bodyCopyEl = els.strategySpotlight.querySelector(".spotlight-body-copy");
-      const bestForEl = els.strategySpotlight.querySelector(".spotlight-bestfor");
+    computedSegs.forEach((seg) => {
+      const arc = existingSvg.querySelector(`.spotlight-ring-arc[data-seg-idx="${seg.idx}"]`);
+      if (arc) {
+        arc.setAttribute("stroke-dasharray", seg.dashArray);
+        arc.setAttribute("stroke-dashoffset", seg.dashOffset);
+      }
+    });
 
+    const titleEl = els.strategySpotlight.querySelector("#spotlight-title");
+    const bodyCopyEl = els.strategySpotlight.querySelector(".spotlight-body-copy");
+    const bestForEl = els.strategySpotlight.querySelector(".spotlight-bestfor");
+    const swapTargets = [titleEl, bodyCopyEl, bestForEl].filter(Boolean);
+
+    const token = ++strategySwap.token;
+    strategySwap.anims.forEach((a) => a.cancel());
+    strategySwap.anims = [];
+
+    const writeSpotlightCopy = () => {
       if (titleEl) titleEl.textContent = strat.name;
       if (bodyCopyEl) {
         bodyCopyEl.innerHTML = `
@@ -585,15 +730,47 @@
             ${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}
           </ul>
         `;
-        if (animateSwap) {
-          bodyCopyEl.classList.remove("spotlight-copy-swap");
-          void bodyCopyEl.offsetWidth;
-          bodyCopyEl.classList.add("spotlight-copy-swap");
-        }
       }
       if (bestForEl) {
         bestForEl.innerHTML = `<strong>Ideal para:</strong> ${escapeHtml(strat.bestFor)}`;
       }
+    };
+
+    if (!animateSwap || prefersReducedMotion() || typeof HTMLElement.prototype.animate !== "function") {
+      writeSpotlightCopy();
+      return;
+    }
+
+    const exitAnims = swapTargets.map((el) =>
+      el.animate(
+        [
+          { opacity: parseFloat(getComputedStyle(el).opacity) || 1, transform: "translateY(0px)" },
+          { opacity: 0, transform: "translateY(-4px)" },
+        ],
+        { duration: 105, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
+      )
+    );
+    strategySwap.anims = exitAnims;
+    await Promise.all(exitAnims.map((a) => a.finished.catch(() => null)));
+    if (token !== strategySwap.token) return;
+
+    writeSpotlightCopy();
+
+    const enterAnims = swapTargets.map((el) =>
+      el.animate(
+        [
+          { opacity: 0, transform: "translateY(6px)" },
+          { opacity: 1, transform: "translateY(0px)" },
+        ],
+        { duration: 200, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" }
+      )
+    );
+    strategySwap.anims = enterAnims;
+    await Promise.all(enterAnims.map((a) => a.finished.catch(() => null)));
+    if (token === strategySwap.token) {
+      enterAnims.forEach((a) => a.cancel());
+      exitAnims.forEach((a) => a.cancel());
+      strategySwap.anims = [];
     }
   }
 
@@ -673,6 +850,20 @@
   }
 
   function renderScene3Tabs() {
+    const existingTabs = els.s3SectionTabs.querySelectorAll(".section-tab");
+    if (existingTabs.length === state.categories.length) {
+      state.categories.forEach((cat) => {
+        const btn = els.s3SectionTabs.querySelector(`.section-tab[data-tab-id="${cat.id}"]`);
+        if (!btn) return;
+        const active = cat.id === state.activeExpenseTab;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+        const amountEl = btn.querySelector("strong");
+        if (amountEl) amountEl.textContent = formatMoney(getItemsSum(cat));
+      });
+      return;
+    }
+
     els.s3SectionTabs.innerHTML = state.categories
       .map((cat) => {
         const active = cat.id === state.activeExpenseTab;
@@ -698,17 +889,85 @@
 
     els.s3SectionTabs.querySelectorAll(".section-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
-        const nextTab = tab.getAttribute("data-tab-id");
-        if (nextTab === state.activeExpenseTab) return;
-        state.activeExpenseTab = nextTab;
-        saveState();
-        renderScene3Tabs();
-        mountScene3Items(true);
+        switchExpenseTab(tab.getAttribute("data-tab-id"));
       });
     });
   }
 
+  async function switchExpenseTab(nextTabId) {
+    if (!nextTabId || nextTabId === state.activeExpenseTab) return;
+
+    const oldIdx = state.categories.findIndex((c) => c.id === state.activeExpenseTab);
+    const newIdx = state.categories.findIndex((c) => c.id === nextTabId);
+    const dirSign = newIdx >= oldIdx ? 1 : -1;
+
+    state.activeExpenseTab = nextTabId;
+    saveState();
+    renderScene3Tabs();
+
+    const token = ++expenseTabSwap.token;
+    const oldStage = els.s3ItemsPanel.querySelector(".expense-items-stage");
+
+    let startOpacity = 1;
+    let startTransform = "translateX(0px)";
+    if (oldStage) {
+      const cs = getComputedStyle(oldStage);
+      startOpacity = Number.isFinite(parseFloat(cs.opacity)) ? parseFloat(cs.opacity) : 1;
+      startTransform = cs.transform === "none" ? "translateX(0px)" : cs.transform;
+    }
+
+    if (expenseTabSwap.anim) {
+      expenseTabSwap.anim.cancel();
+      expenseTabSwap.anim = null;
+    }
+
+    if (prefersReducedMotion() || typeof HTMLElement.prototype.animate !== "function") {
+      mountScene3Items(false);
+      return;
+    }
+
+    if (oldStage) {
+      const exitDur = Math.max(70, Math.round(140 * Math.max(0.2, startOpacity)));
+      const exitRes = await runSingleAnim(
+        oldStage,
+        [
+          { opacity: startOpacity, transform: startTransform },
+          { opacity: 0, transform: `translateX(${-12 * dirSign}px)` },
+        ],
+        { duration: exitDur, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" },
+        expenseTabSwap
+      );
+      if (token !== expenseTabSwap.token) {
+        return;
+      }
+      if (exitRes.anim) exitRes.anim.cancel();
+    }
+
+    animateContainerHeight(
+      els.s3ItemsPanel,
+      () => mountScene3Items(true),
+      expenseTabSwap
+    );
+
+    const newStage = els.s3ItemsPanel.querySelector(".expense-items-stage");
+    if (newStage) {
+      const enterRes = await runSingleAnim(
+        newStage,
+        [
+          { opacity: 0, transform: `translateX(${14 * dirSign}px)` },
+          { opacity: 1, transform: "translateX(0px)" },
+        ],
+        { duration: 240, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
+        expenseTabSwap
+      );
+      if (enterRes.finished && token === expenseTabSwap.token && enterRes.anim) {
+        enterRes.anim.cancel();
+      }
+    }
+  }
+
   function mountScene3Items(animateItems = false) {
+    resetContainerHeight(els.s3ItemsPanel, expenseTabSwap);
     const cat = state.categories.find((c) => c.id === state.activeExpenseTab) || state.categories[0];
     const curSymbol = (CURRENCIES[state.currency] || CURRENCIES.USD).symbol;
     const sliderMax = Math.max(100, Math.round(state.income * 0.8));
@@ -768,10 +1027,12 @@
       .join("");
 
     els.s3ItemsPanel.innerHTML = `
-      ${rowsHtml}
-      <button type="button" class="btn-add-expense" id="btn-add-expense-item">
-        + Añadir otro gasto en ${escapeHtml(cat.tabName)}
-      </button>
+      <div class="expense-items-stage">
+        ${rowsHtml}
+        <button type="button" class="btn-add-expense" id="btn-add-expense-item">
+          + Añadir otro gasto en ${escapeHtml(cat.tabName)}
+        </button>
+      </div>
     `;
 
     els.s3ItemsPanel.querySelectorAll(".expense-item-row").forEach((row) => {
@@ -1090,41 +1351,77 @@
     const strat = STRATEGIES[state.strategy];
     const refTargets = (strat && strat.targets) || { needs: 50, wants: 30, savings: 20 };
 
+    const getBarStatus = (cat, targetPct) => {
+      const diff = cat.percent - targetPct;
+      if (cat.id === "savings") {
+        if (diff >= 0) {
+          return {
+            statusText: diff === 0 ? "En la meta" : `¡+${diff}% extra de ahorro!`,
+            statusClass: "status-balanced",
+          };
+        }
+        return {
+          statusText: `Te faltan ${Math.abs(diff)}% para tu meta`,
+          statusClass: "status-surplus",
+        };
+      }
+      if (diff <= 0) {
+        return {
+          statusText: diff === 0 ? "En la meta" : `Muy bien (${Math.abs(diff)}% debajo)`,
+          statusClass: "status-balanced",
+        };
+      }
+      if (diff <= 10) {
+        return {
+          statusText: `Un poco arriba (+${diff}%)`,
+          statusClass: "status-surplus",
+        };
+      }
+      return {
+        statusText: `Muy alto (+${diff}% sobre la meta)`,
+        statusClass: "status-deficit",
+      };
+    };
+
+    const existingCards = els.viewBars.querySelectorAll(".easy-bar-card[data-cat-id]");
+    if (!animateFromZero && existingCards.length === state.categories.length) {
+      state.categories.forEach((cat) => {
+        const card = els.viewBars.querySelector(`.easy-bar-card[data-cat-id="${cat.id}"]`);
+        if (!card) return;
+        const targetPct = refTargets[cat.id];
+        const actualPct = Math.min(100, cat.percent);
+        const { statusText, statusClass } = getBarStatus(cat, targetPct);
+
+        const statusEl = card.querySelector(".easy-bar-status");
+        if (statusEl) {
+          statusEl.textContent = statusText;
+          statusEl.className = `easy-bar-status ${statusClass}`;
+        }
+        const targetFill = card.querySelector(".easy-track-fill.is-target");
+        const targetVal = card.querySelector(".easy-track-val.is-target-val");
+        const actualFill = card.querySelector(".easy-track-fill.is-actual");
+        const actualVal = card.querySelector(".easy-track-val.is-actual-val");
+
+        if (targetFill) targetFill.style.width = `${targetPct}%`;
+        if (targetVal) targetVal.textContent = `${targetPct}%`;
+        if (actualFill) actualFill.style.width = `${actualPct}%`;
+        if (actualVal) actualVal.textContent = `${cat.percent}% · ${formatMoney(getCategoryAmount(cat))}`;
+      });
+      return;
+    }
+
     const cardsHtml = state.categories
       .map((cat, idx) => {
         const targetPct = refTargets[cat.id];
         const actualPct = Math.min(100, cat.percent);
-        const diff = cat.percent - targetPct;
-        let statusText = "Justo en la meta";
-        let statusClass = "status-balanced";
-
-        if (cat.id === "savings") {
-          if (diff >= 0) {
-            statusText = diff === 0 ? "En la meta" : `¡+${diff}% extra de ahorro!`;
-            statusClass = "status-balanced";
-          } else {
-            statusText = `Te faltan ${Math.abs(diff)}% para tu meta`;
-            statusClass = "status-surplus";
-          }
-        } else {
-          if (diff <= 0) {
-            statusText = diff === 0 ? "En la meta" : `Muy bien (${Math.abs(diff)}% debajo)`;
-            statusClass = "status-balanced";
-          } else if (diff <= 10) {
-            statusText = `Un poco arriba (+${diff}%)`;
-            statusClass = "status-surplus";
-          } else {
-            statusText = `Muy alto (+${diff}% sobre la meta)`;
-            statusClass = "status-deficit";
-          }
-        }
+        const { statusText, statusClass } = getBarStatus(cat, targetPct);
 
         const staggerClass = animateFromZero ? "is-stagger-in" : "";
         const targetWidth = animateFromZero ? "0%" : `${targetPct}%`;
         const actualWidth = animateFromZero ? "0%" : `${actualPct}%`;
 
         return `
-          <div class="easy-bar-card ${staggerClass}" style="--item-index:${idx}">
+          <div class="easy-bar-card ${staggerClass}" data-cat-id="${cat.id}" style="--item-index:${idx}">
             <div class="easy-bar-head">
               <span class="easy-bar-title">
                 <span class="cat-dot" style="background:${cat.color}"></span>
@@ -1139,14 +1436,14 @@
                 <div class="easy-track-outer">
                   <div class="easy-track-fill is-target" data-target-width="${targetPct}%" style="width:${targetWidth}"></div>
                 </div>
-                <span class="easy-track-val">${targetPct}%</span>
+                <span class="easy-track-val is-target-val">${targetPct}%</span>
               </div>
               <div class="easy-track-row">
                 <span class="easy-track-label">Lo tuyo</span>
                 <div class="easy-track-outer">
-                  <div class="easy-track-fill" data-target-width="${actualPct}%" style="width:${actualWidth}; background:${cat.color}"></div>
+                  <div class="easy-track-fill is-actual" data-target-width="${actualPct}%" style="width:${actualWidth}; background:${cat.color}"></div>
                 </div>
-                <span class="easy-track-val">${cat.percent}% · ${formatMoney(getCategoryAmount(cat))}</span>
+                <span class="easy-track-val is-actual-val">${cat.percent}% · ${formatMoney(getCategoryAmount(cat))}</span>
               </div>
             </div>
           </div>
@@ -1283,7 +1580,110 @@
     }
   }
 
-  function renderScene4(animateModeChange = false, snapGlider = false) {
+  async function switchChartMode(nextMode) {
+    if (!nextMode || nextMode === state.chartMode) return;
+
+    const dirSign = nextMode === "bars" ? 1 : -1;
+    state.chartMode = nextMode;
+    saveState();
+
+    els.chartModeSwitch.querySelectorAll(".mode-tab").forEach((tab) => {
+      const active = tab.getAttribute("data-chart-mode") === state.chartMode;
+      tab.classList.toggle("is-active", active);
+      tab.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    updateModeSwitchGlider(false);
+
+    const token = ++chartModeSwap.token;
+    const inPanel = nextMode === "bars" ? els.viewBars : els.viewDonut;
+    const outPanel = !els.viewDonut.hidden ? els.viewDonut : els.viewBars;
+
+    let startOpacity = 1;
+    let startTransform = "translateX(0px) scale(1)";
+    if (outPanel) {
+      const cs = getComputedStyle(outPanel);
+      startOpacity = Number.isFinite(parseFloat(cs.opacity)) ? parseFloat(cs.opacity) : 1;
+      startTransform = cs.transform === "none" ? "translateX(0px) scale(1)" : cs.transform;
+    }
+
+    if (chartModeSwap.anim) {
+      chartModeSwap.anim.cancel();
+      chartModeSwap.anim = null;
+    }
+
+    if (prefersReducedMotion() || typeof HTMLElement.prototype.animate !== "function") {
+      els.viewDonut.hidden = nextMode === "bars";
+      els.viewBars.hidden = nextMode !== "bars";
+      if (nextMode === "bars") renderEasyBars(false);
+      else renderChart();
+      resetContainerHeight(els.chartStageViewport, chartModeSwap);
+      return;
+    }
+
+    // Si vuelve rápido al mismo panel que estaba saliendo
+    if (outPanel === inPanel) {
+      inPanel.hidden = false;
+      if (nextMode === "bars") renderEasyBars(false);
+      else renderChart();
+      const backRes = await runSingleAnim(
+        inPanel,
+        [
+          { opacity: startOpacity, transform: startTransform },
+          { opacity: 1, transform: "translateX(0px) scale(1)" },
+        ],
+        { duration: 190, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
+        chartModeSwap
+      );
+      if (backRes.finished && token === chartModeSwap.token && backRes.anim) {
+        backRes.anim.cancel();
+      }
+      return;
+    }
+
+    if (outPanel) {
+      const exitDur = Math.max(75, Math.round(150 * Math.max(0.2, startOpacity)));
+      const exitRes = await runSingleAnim(
+        outPanel,
+        [
+          { opacity: startOpacity, transform: startTransform },
+          { opacity: 0, transform: `translateX(${-14 * dirSign}px) scale(0.988)` },
+        ],
+        { duration: exitDur, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" },
+        chartModeSwap
+      );
+      if (token !== chartModeSwap.token) {
+        return;
+      }
+      if (exitRes.anim) exitRes.anim.cancel();
+    }
+
+    animateContainerHeight(
+      els.chartStageViewport,
+      () => {
+        els.viewDonut.hidden = nextMode === "bars";
+        els.viewBars.hidden = nextMode !== "bars";
+        if (nextMode === "bars") renderEasyBars(true);
+        else renderChart();
+      },
+      chartModeSwap
+    );
+
+    const enterRes = await runSingleAnim(
+      inPanel,
+      [
+        { opacity: 0, transform: `translateX(${16 * dirSign}px) scale(0.988)` },
+        { opacity: 1, transform: "translateX(0px) scale(1)" },
+      ],
+      { duration: 250, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
+      chartModeSwap
+    );
+    if (enterRes.finished && token === chartModeSwap.token && enterRes.anim) {
+      enterRes.anim.cancel();
+    }
+  }
+
+  function renderScene4(animateBarsFromZero = false, snapGlider = false) {
+    resetContainerHeight(els.chartStageViewport, chartModeSwap);
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     els.s4StrategyBadge.textContent = `Paso 4 de 6 · Estrategia: ${strat.name}`;
     els.autobalanceCheckbox.checked = state.autoBalance;
@@ -1298,16 +1698,8 @@
     els.viewDonut.hidden = showBars;
     els.viewBars.hidden = !showBars;
 
-    els.viewDonut.classList.remove("is-panel-entering");
-    els.viewBars.classList.remove("is-panel-entering");
-    if (animateModeChange) {
-      const activePanel = showBars ? els.viewBars : els.viewDonut;
-      void activePanel.offsetWidth;
-      activePanel.classList.add("is-panel-entering");
-    }
-
     renderChart();
-    renderEasyBars(animateModeChange && showBars);
+    renderEasyBars(animateBarsFromZero && showBars);
     updateSlidersInPlace();
     renderScene4LiveTip();
 
@@ -1496,10 +1888,11 @@
 
   function applySimulationAction(simAction) {
     if (!simAction) return;
+    const prevScore = analyzeBudget().score;
     if (simAction.rebalance) {
       state.autoBalance = true;
       setCategoryPercent("needs", state.categories[0].percent);
-      renderScene5(true);
+      renderScene5(true, prevScore);
       return;
     }
     if (simAction.deltas) {
@@ -1510,15 +1903,17 @@
       });
       detectStrategyMatch();
       saveState();
-      renderScene5(true);
+      renderScene5(true, prevScore);
     }
   }
 
-  function renderScene5(animateScore = false) {
+  function renderScene5(animateScore = false, fromScore = 0) {
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     const analysis = analyzeBudget();
     const r = 46;
     const circ = 2 * Math.PI * r;
+    const initialScore = animateScore ? fromScore : analysis.score;
+    const startOffset = circ * (1 - initialScore / 100);
     const targetOffset = circ * (1 - analysis.score / 100);
     const ringColor = analysis.score >= 80 ? "#0F766E" : analysis.score >= 60 ? "#D97706" : "#BE123C";
 
@@ -1563,11 +1958,11 @@
               stroke-width="10"
               stroke-linecap="round"
               stroke-dasharray="${circ.toFixed(2)}"
-              stroke-dashoffset="${animateScore ? circ.toFixed(2) : targetOffset.toFixed(2)}"
+              stroke-dashoffset="${startOffset.toFixed(2)}"
             />
           </svg>
           <div class="score-ring-center">
-            <strong id="s5-score-num">${animateScore ? 0 : analysis.score}</strong>
+            <strong id="s5-score-num">${initialScore}</strong>
             <span>/ 100</span>
           </div>
         </div>
@@ -1617,7 +2012,7 @@
         const arc = document.getElementById("score-ring-arc");
         const numEl = document.getElementById("s5-score-num");
         if (arc) arc.setAttribute("stroke-dashoffset", targetOffset.toFixed(2));
-        if (numEl) animateValue(numEl, 0, analysis.score, 650);
+        if (numEl) animateValue(numEl, fromScore, analysis.score, 600);
       });
     }
 
@@ -1886,11 +2281,7 @@
     // Escena 4
     els.chartModeSwitch.querySelectorAll(".mode-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
-        const nextMode = tab.getAttribute("data-chart-mode");
-        if (nextMode === state.chartMode) return;
-        state.chartMode = nextMode;
-        saveState();
-        renderScene4(true, false);
+        switchChartMode(tab.getAttribute("data-chart-mode"));
       });
     });
 

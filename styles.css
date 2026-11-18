@@ -146,7 +146,7 @@ select {
   font-weight: 600;
   color: var(--ink-muted);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.22s ease, color 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s var(--ease-spring);
 }
 
 .step-num {
@@ -160,7 +160,7 @@ select {
   font-weight: 800;
   background: var(--bg-subtle);
   color: var(--ink-muted);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.22s ease, color 0.22s ease, transform 0.22s var(--ease-spring);
 }
 
 .step-item.is-unlocked {
@@ -229,11 +229,11 @@ select {
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #0f766e, #2563eb);
-  transition: width 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: width 0.42s var(--ease-out-expo);
 }
 
 /* ==========================================================================
-   Escenario Céntrico & Transiciones de Escena
+   Escenario Céntrico & Transiciones de Escena (Salida -> Entrada limpia)
    ========================================================================== */
 
 .stage-viewport {
@@ -242,10 +242,10 @@ select {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  padding: 32px 22px 56px;
+  padding: clamp(28px, 5.2vh, 52px) 22px 64px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .scene {
@@ -255,109 +255,6 @@ select {
 
 .scene[hidden] {
   display: none;
-}
-
-.scene.is-leaving {
-  position: absolute;
-  top: 32px;
-  left: 22px;
-  right: 22px;
-  width: auto;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.scene.is-active {
-  position: relative;
-  z-index: 2;
-}
-
-.scene.anim-forward {
-  animation: sceneEnterForward 0.44s var(--ease-out-expo) both;
-}
-
-.scene.anim-backward {
-  animation: sceneEnterBackward 0.44s var(--ease-out-expo) both;
-}
-
-.scene.anim-exit-forward {
-  animation: sceneExitForward 0.24s cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-.scene.anim-exit-backward {
-  animation: sceneExitBackward 0.24s cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-@keyframes sceneEnterForward {
-  from {
-    opacity: 0;
-    transform: translateX(28px) scale(0.985);
-    filter: blur(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes sceneEnterBackward {
-  from {
-    opacity: 0;
-    transform: translateX(-28px) scale(0.985);
-    filter: blur(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes sceneExitForward {
-  from {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-24px) scale(0.98);
-  }
-}
-
-@keyframes sceneExitBackward {
-  from {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(24px) scale(0.98);
-  }
-}
-
-/* Coreografía escalonada sutil dentro de cada escena */
-.scene.anim-forward .scene-eyebrow,
-.scene.anim-backward .scene-eyebrow {
-  animation: childFadeUp 0.36s var(--ease-out-expo) 0.03s both;
-}
-
-.scene.anim-forward .scene-title,
-.scene.anim-forward .scene-title-sm,
-.scene.anim-backward .scene-title,
-.scene.anim-backward .scene-title-sm {
-  animation: childFadeUp 0.4s var(--ease-out-expo) 0.06s both;
-}
-
-@keyframes childFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .scene-inner {
@@ -724,8 +621,10 @@ select {
   transition: stroke-dasharray 0.55s var(--ease-out-expo), stroke-dashoffset 0.55s var(--ease-out-expo);
 }
 
-.spotlight-copy-swap {
-  animation: childFadeUp 0.28s var(--ease-out-expo) both;
+.spotlight-title,
+.spotlight-body-copy,
+.spotlight-bestfor {
+  will-change: opacity, transform;
 }
 
 .spotlight-head {
@@ -916,9 +815,14 @@ select {
   border-radius: var(--radius-lg);
   padding: 18px 20px;
   box-shadow: var(--shadow-md);
+  will-change: height;
+}
+
+.expense-items-stage {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  will-change: opacity, transform;
 }
 
 .expense-item-row {
@@ -933,14 +837,14 @@ select {
 }
 
 .expense-item-row.is-stagger-in {
-  animation: itemReveal 0.34s var(--ease-out-expo) both;
-  animation-delay: calc(var(--item-index, 0) * 28ms);
+  animation: itemReveal 0.28s var(--ease-out-expo) both;
+  animation-delay: calc(var(--item-index, 0) * 18ms);
 }
 
 @keyframes itemReveal {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -1224,29 +1128,20 @@ select {
   gap: 22px;
 }
 
+.chart-stage-viewport {
+  width: 100%;
+  will-change: height;
+}
+
 .chart-view-panel {
   width: 100%;
   display: flex;
   justify-content: center;
+  will-change: opacity, transform;
 }
 
 .chart-view-panel[hidden] {
   display: none;
-}
-
-.chart-view-panel.is-panel-entering {
-  animation: panelEnter 0.36s var(--ease-out-expo) both;
-}
-
-@keyframes panelEnter {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 .chart-wrapper {
@@ -2145,12 +2040,6 @@ select {
     padding: 20px 14px 44px;
   }
 
-  .scene.is-leaving {
-    top: 20px;
-    left: 14px;
-    right: 14px;
-  }
-
   .hero-income-card,
   .expense-items-card,
   .centerpiece-stage,
@@ -2189,19 +2078,7 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scene.anim-forward,
-  .scene.anim-backward,
-  .scene.anim-exit-forward,
-  .scene.anim-exit-backward,
-  .scene.anim-forward .scene-eyebrow,
-  .scene.anim-backward .scene-eyebrow,
-  .scene.anim-forward .scene-title,
-  .scene.anim-forward .scene-title-sm,
-  .scene.anim-backward .scene-title,
-  .scene.anim-backward .scene-title-sm,
-  .spotlight-copy-swap,
   .expense-item-row.is-stagger-in,
-  .chart-view-panel.is-panel-entering,
   .easy-bar-card.is-stagger-in {
     animation: none !important;
   }
@@ -2215,7 +2092,9 @@ select {
   .easy-track-fill,
   .score-ring-arc,
   .section-tab,
-  .strategy-card {
+  .strategy-card,
+  .step-item,
+  .step-num {
     transition: none !important;
   }
 }

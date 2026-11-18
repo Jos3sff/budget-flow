@@ -229,35 +229,37 @@
           </div>
 
           <div class="centerpiece-stage">
-            <!-- Vista A: Gráfico Circular Grande -->
-            <div class="chart-view-panel" id="view-donut">
-              <div class="chart-wrapper">
-                <svg
-                  id="main-donut-svg"
-                  class="main-donut-svg"
-                  viewBox="0 0 420 420"
-                  role="img"
-                  aria-labelledby="donut-title donut-desc"
-                >
-                  <title id="donut-title">Gráfico circular interactivo del presupuesto</title>
-                  <desc id="donut-desc">Muestra la proporción y monto asignado a necesidades, deseos y ahorro.</desc>
-                  <circle class="donut-track" cx="210" cy="210" r="154" />
-                  <g id="donut-segments"></g>
-                </svg>
+            <div class="chart-stage-viewport" id="chart-stage-viewport">
+              <!-- Vista A: Gráfico Circular Grande -->
+              <div class="chart-view-panel" id="view-donut">
+                <div class="chart-wrapper">
+                  <svg
+                    id="main-donut-svg"
+                    class="main-donut-svg"
+                    viewBox="0 0 420 420"
+                    role="img"
+                    aria-labelledby="donut-title donut-desc"
+                  >
+                    <title id="donut-title">Gráfico circular interactivo del presupuesto</title>
+                    <desc id="donut-desc">Muestra la proporción y monto asignado a necesidades, deseos y ahorro.</desc>
+                    <circle class="donut-track" cx="210" cy="210" r="154" />
+                    <g id="donut-segments"></g>
+                  </svg>
 
-                <div class="chart-center-readout">
-                  <span class="center-label" id="center-label">Ingreso mensual</span>
-                  <strong class="center-amount" id="center-amount">$2,400</strong>
-                  <span class="center-status status-balanced" id="center-status">100% asignado</span>
-                  <span class="center-subnote" id="center-subnote">Toca un bloque para enfocarte</span>
+                  <div class="chart-center-readout">
+                    <span class="center-label" id="center-label">Ingreso mensual</span>
+                    <strong class="center-amount" id="center-amount">$2,400</strong>
+                    <span class="center-status status-balanced" id="center-status">100% asignado</span>
+                    <span class="center-subnote" id="center-subnote">Toca un bloque para enfocarte</span>
+                  </div>
+
+                  <div class="chart-tooltip" id="chart-tooltip" hidden></div>
                 </div>
-
-                <div class="chart-tooltip" id="chart-tooltip" hidden></div>
               </div>
-            </div>
 
-            <!-- Vista B: Gráfico de Barras Comparativo Súper Claro ("Tu meta vs Lo tuyo") -->
-            <div class="chart-view-panel" id="view-bars" hidden></div>
+              <!-- Vista B: Gráfico de Barras Comparativo Súper Claro ("Tu meta vs Lo tuyo") -->
+              <div class="chart-view-panel" id="view-bars" hidden></div>
+            </div>
 
             <!-- Controles finos sincronizados -->
             <div class="sliders-head-bar">
