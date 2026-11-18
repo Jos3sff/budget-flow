@@ -193,6 +193,7 @@
     // Escena 4 (Gráficos grandes)
     s4StrategyBadge: document.getElementById("s4-strategy-badge"),
     chartModeSwitch: document.querySelector(".chart-mode-switch"),
+    modeSwitchGlider: document.getElementById("mode-switch-glider"),
     viewDonut: document.getElementById("view-donut"),
     viewBars: document.getElementById("view-bars"),
     autobalanceCheckbox: document.getElementById("autobalance-checkbox"),
@@ -353,18 +354,36 @@
   // Navegación entre las 6 Escenas
   // =========================================================================
 
+  const sceneExitTimers = new WeakMap();
+
   function goToStep(step, directionOverride = null, skipAnim = false) {
     const target = Math.max(1, Math.min(6, step));
     if (target > state.unlockedStep) return;
 
     const prev = state.currentStep;
+    if (target === prev && !skipAnim) return;
+
     const direction = directionOverride || (target >= prev ? "forward" : "backward");
     state.currentStep = target;
     saveState();
 
     els.scenes.forEach((sec) => {
       const sceneNum = Number(sec.getAttribute("data-scene"));
-      sec.classList.remove("anim-forward", "anim-backward", "is-active");
+      const existingTimer = sceneExitTimers.get(sec);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+        sceneExitTimers.delete(sec);
+      }
+
+      sec.classList.remove(
+        "anim-forward",
+        "anim-backward",
+        "anim-exit-forward",
+        "anim-exit-backward",
+        "is-leaving",
+        "is-active"
+      );
+
       if (sceneNum === target) {
         sec.hidden = false;
         if (!skipAnim) {
@@ -372,6 +391,18 @@
           sec.classList.add(direction === "forward" ? "anim-forward" : "anim-backward");
         }
         sec.classList.add("is-active");
+      } else if (!skipAnim && sceneNum === prev) {
+        sec.hidden = false;
+        void sec.offsetWidth;
+        sec.classList.add("is-leaving", direction === "forward" ? "anim-exit-forward" : "anim-exit-backward");
+        const timerId = setTimeout(() => {
+          sec.classList.remove("is-leaving", "anim-exit-forward", "anim-exit-backward");
+          if (state.currentStep !== sceneNum) {
+            sec.hidden = true;
+          }
+          sceneExitTimers.delete(sec);
+        }, 240);
+        sceneExitTimers.set(sec, timerId);
       } else {
         sec.hidden = true;
       }
@@ -379,7 +410,11 @@
 
     renderStepper();
     renderCurrentScene(!skipAnim);
-    window.scrollTo({ top: 0, behavior: skipAnim ? "auto" : "smooth" });
+    if (!skipAnim && window.scrollY > 40) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (skipAnim) {
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }
   }
 
   function unlockAndGo(nextStep) {
@@ -434,28 +469,38 @@
   // Escena 2: Estrategia
   // =========================================================================
 
-  function renderScene2() {
-    els.strategyGrid.innerHTML = Object.values(STRATEGIES)
-      .map((s) => {
-        const selected = s.id === state.strategy;
-        return `
-          <button type="button" class="strategy-card ${selected ? "is-selected" : ""}" data-strategy="${s.id}" role="radio" aria-checked="${selected ? "true" : "false"}">
-            <div class="strategy-card-main">
-              <strong>${escapeHtml(s.name)}</strong>
-              <span>${escapeHtml(s.tagline)}</span>
-            </div>
-            <span class="strategy-ratio-dots">${escapeHtml(s.short)}</span>
-          </button>
-        `;
-      })
-      .join("");
+  function renderScene2(animateSwap = false) {
+    if (!els.strategyGrid.querySelector(".strategy-card")) {
+      els.strategyGrid.innerHTML = Object.values(STRATEGIES)
+        .map((s) => {
+          const selected = s.id === state.strategy;
+          return `
+            <button type="button" class="strategy-card ${selected ? "is-selected" : ""}" data-strategy="${s.id}" role="radio" aria-checked="${selected ? "true" : "false"}">
+              <div class="strategy-card-main">
+                <strong>${escapeHtml(s.name)}</strong>
+                <span>${escapeHtml(s.tagline)}</span>
+              </div>
+              <span class="strategy-ratio-dots">${escapeHtml(s.short)}</span>
+            </button>
+          `;
+        })
+        .join("");
 
-    els.strategyGrid.querySelectorAll(".strategy-card").forEach((card) => {
-      card.addEventListener("click", () => {
-        applyStrategy(card.getAttribute("data-strategy"));
-        renderScene2();
+      els.strategyGrid.querySelectorAll(".strategy-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          const nextStrat = card.getAttribute("data-strategy");
+          if (nextStrat === state.strategy) return;
+          applyStrategy(nextStrat);
+          renderScene2(true);
+        });
       });
-    });
+    } else {
+      els.strategyGrid.querySelectorAll(".strategy-card").forEach((card) => {
+        const selected = card.getAttribute("data-strategy") === state.strategy;
+        card.classList.toggle("is-selected", selected);
+        card.setAttribute("aria-checked", selected ? "true" : "false");
+      });
+    }
 
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     const ringPercentages = strat.targets || {
@@ -472,39 +517,84 @@
       { color: "#2563EB", pct: ringPercentages.savings },
     ];
     let offset = 0;
-    const circles = segData
-      .map((seg) => {
-        const len = (seg.pct / 100) * circ;
-        const gap = Math.max(0, circ - len);
-        const dashOffset = -offset;
-        offset += len;
-        return `<circle cx="40" cy="40" r="${r}" fill="none" stroke="${seg.color}" stroke-width="11" stroke-dasharray="${len.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${dashOffset.toFixed(2)}" />`;
-      })
-      .join("");
+    const computedSegs = segData.map((seg, idx) => {
+      const len = (seg.pct / 100) * circ;
+      const gap = Math.max(0, circ - len);
+      const dashOffset = -offset;
+      offset += len;
+      return {
+        idx,
+        color: seg.color,
+        dashArray: `${len.toFixed(2)} ${gap.toFixed(2)}`,
+        dashOffset: dashOffset.toFixed(2),
+      };
+    });
 
-    els.strategySpotlight.innerHTML = `
-      <div>
-        <div class="spotlight-head">
-          <div aria-hidden="true">
-            <svg viewBox="0 0 80 80" width="76" height="76" style="transform: rotate(-90deg);">
-              <circle cx="40" cy="40" r="${r}" fill="none" stroke="#efece4" stroke-width="11" />
-              ${circles}
-            </svg>
+    const existingSvg = els.strategySpotlight.querySelector(".spotlight-ring-svg");
+    if (!existingSvg) {
+      const circles = computedSegs
+        .map(
+          (seg) =>
+            `<circle class="spotlight-ring-arc" data-seg-idx="${seg.idx}" cx="40" cy="40" r="${r}" fill="none" stroke="${seg.color}" stroke-width="11" stroke-dasharray="${seg.dashArray}" stroke-dashoffset="${seg.dashOffset}" />`
+        )
+        .join("");
+
+      els.strategySpotlight.innerHTML = `
+        <div>
+          <div class="spotlight-head">
+            <div aria-hidden="true">
+              <svg class="spotlight-ring-svg" viewBox="0 0 80 80" width="76" height="76" style="transform: rotate(-90deg);">
+                <circle cx="40" cy="40" r="${r}" fill="none" stroke="#efece4" stroke-width="11" />
+                ${circles}
+              </svg>
+            </div>
+            <div class="spotlight-copy-block">
+              <span class="spotlight-kicker">¿Por qué funciona?</span>
+              <h3 class="spotlight-title" id="spotlight-title">${escapeHtml(strat.name)}</h3>
+            </div>
           </div>
-          <div>
-            <span class="spotlight-kicker">¿Por qué funciona?</span>
-            <h3 class="spotlight-title">${escapeHtml(strat.name)}</h3>
+          <div class="spotlight-body-copy">
+            <p class="spotlight-summary" style="margin-top:14px;">${escapeHtml(strat.whySummary)}</p>
+            <ul class="spotlight-bullets" style="margin-top:10px;">
+              ${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}
+            </ul>
           </div>
         </div>
-        <p class="spotlight-summary" style="margin-top:14px;">${escapeHtml(strat.whySummary)}</p>
-        <ul class="spotlight-bullets" style="margin-top:10px;">
-          ${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}
-        </ul>
-      </div>
-      <div class="spotlight-bestfor">
-        <strong>Ideal para:</strong> ${escapeHtml(strat.bestFor)}
-      </div>
-    `;
+        <div class="spotlight-bestfor">
+          <strong>Ideal para:</strong> ${escapeHtml(strat.bestFor)}
+        </div>
+      `;
+    } else {
+      computedSegs.forEach((seg) => {
+        const arc = existingSvg.querySelector(`.spotlight-ring-arc[data-seg-idx="${seg.idx}"]`);
+        if (arc) {
+          arc.setAttribute("stroke-dasharray", seg.dashArray);
+          arc.setAttribute("stroke-dashoffset", seg.dashOffset);
+        }
+      });
+
+      const titleEl = els.strategySpotlight.querySelector("#spotlight-title");
+      const bodyCopyEl = els.strategySpotlight.querySelector(".spotlight-body-copy");
+      const bestForEl = els.strategySpotlight.querySelector(".spotlight-bestfor");
+
+      if (titleEl) titleEl.textContent = strat.name;
+      if (bodyCopyEl) {
+        bodyCopyEl.innerHTML = `
+          <p class="spotlight-summary" style="margin-top:14px;">${escapeHtml(strat.whySummary)}</p>
+          <ul class="spotlight-bullets" style="margin-top:10px;">
+            ${strat.whyDetails.map((d) => `<li>${escapeHtml(d)}</li>`).join("")}
+          </ul>
+        `;
+        if (animateSwap) {
+          bodyCopyEl.classList.remove("spotlight-copy-swap");
+          void bodyCopyEl.offsetWidth;
+          bodyCopyEl.classList.add("spotlight-copy-swap");
+        }
+      }
+      if (bestForEl) {
+        bestForEl.innerHTML = `<strong>Ideal para:</strong> ${escapeHtml(strat.bestFor)}`;
+      }
+    }
   }
 
   function applyStrategy(strategyId) {
@@ -608,28 +698,31 @@
 
     els.s3SectionTabs.querySelectorAll(".section-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
-        state.activeExpenseTab = tab.getAttribute("data-tab-id");
+        const nextTab = tab.getAttribute("data-tab-id");
+        if (nextTab === state.activeExpenseTab) return;
+        state.activeExpenseTab = nextTab;
         saveState();
         renderScene3Tabs();
-        mountScene3Items();
+        mountScene3Items(true);
       });
     });
   }
 
-  function mountScene3Items() {
+  function mountScene3Items(animateItems = false) {
     const cat = state.categories.find((c) => c.id === state.activeExpenseTab) || state.categories[0];
     const curSymbol = (CURRENCIES[state.currency] || CURRENCIES.USD).symbol;
     const sliderMax = Math.max(100, Math.round(state.income * 0.8));
 
     const rowsHtml = cat.items
-      .map((item) => {
+      .map((item, idx) => {
         const val = Math.round(Number(item.amount) || 0);
         const sharePct = state.income > 0 ? Math.round((val / state.income) * 100) : 0;
         const sliderPct = Math.min(100, Math.round((val / sliderMax) * 100));
         const iconSvg = ICONS[item.icon] || ICONS.tag;
+        const staggerClass = animateItems ? "is-stagger-in" : "";
 
         return `
-          <div class="expense-item-row" data-item-id="${item.id}" style="--cat-color:${cat.color}">
+          <div class="expense-item-row ${staggerClass}" data-item-id="${item.id}" style="--cat-color:${cat.color}; --item-index:${idx}">
             <div class="expense-row-top">
               <div class="expense-name-wrap">
                 <span class="expense-icon-badge" aria-hidden="true">${iconSvg}</span>
@@ -726,7 +819,7 @@
         saveState();
         renderScene3Thermometer();
         renderScene3Tabs();
-        mountScene3Items();
+        mountScene3Items(false);
         renderScene3VisualPanel();
       });
     });
@@ -741,7 +834,7 @@
       });
       state.itemsTouched = true;
       saveState();
-      mountScene3Items();
+      mountScene3Items(false);
       renderScene3VisualPanel();
     });
   }
@@ -803,10 +896,10 @@
     `;
   }
 
-  function renderScene3() {
+  function renderScene3(animateItems = false) {
     renderScene3Thermometer();
     renderScene3Tabs();
-    mountScene3Items();
+    mountScene3Items(animateItems);
     renderScene3VisualPanel();
   }
 
@@ -993,13 +1086,14 @@
     updateSlidersInPlace();
   }
 
-  function renderEasyBars() {
+  function renderEasyBars(animateFromZero = false) {
     const strat = STRATEGIES[state.strategy];
     const refTargets = (strat && strat.targets) || { needs: 50, wants: 30, savings: 20 };
 
     const cardsHtml = state.categories
-      .map((cat) => {
+      .map((cat, idx) => {
         const targetPct = refTargets[cat.id];
+        const actualPct = Math.min(100, cat.percent);
         const diff = cat.percent - targetPct;
         let statusText = "Justo en la meta";
         let statusClass = "status-balanced";
@@ -1025,8 +1119,12 @@
           }
         }
 
+        const staggerClass = animateFromZero ? "is-stagger-in" : "";
+        const targetWidth = animateFromZero ? "0%" : `${targetPct}%`;
+        const actualWidth = animateFromZero ? "0%" : `${actualPct}%`;
+
         return `
-          <div class="easy-bar-card">
+          <div class="easy-bar-card ${staggerClass}" style="--item-index:${idx}">
             <div class="easy-bar-head">
               <span class="easy-bar-title">
                 <span class="cat-dot" style="background:${cat.color}"></span>
@@ -1039,14 +1137,14 @@
               <div class="easy-track-row">
                 <span class="easy-track-label">Lo ideal</span>
                 <div class="easy-track-outer">
-                  <div class="easy-track-fill is-target" style="width:${targetPct}%"></div>
+                  <div class="easy-track-fill is-target" data-target-width="${targetPct}%" style="width:${targetWidth}"></div>
                 </div>
                 <span class="easy-track-val">${targetPct}%</span>
               </div>
               <div class="easy-track-row">
                 <span class="easy-track-label">Lo tuyo</span>
                 <div class="easy-track-outer">
-                  <div class="easy-track-fill" style="width:${Math.min(100, cat.percent)}%; background:${cat.color}"></div>
+                  <div class="easy-track-fill" data-target-width="${actualPct}%" style="width:${actualWidth}; background:${cat.color}"></div>
                 </div>
                 <span class="easy-track-val">${cat.percent}% · ${formatMoney(getCategoryAmount(cat))}</span>
               </div>
@@ -1057,6 +1155,16 @@
       .join("");
 
     els.viewBars.innerHTML = `<div class="easy-bars-board">${cardsHtml}</div>`;
+
+    if (animateFromZero) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          els.viewBars.querySelectorAll(".easy-track-fill[data-target-width]").forEach((fill) => {
+            fill.style.width = fill.getAttribute("data-target-width");
+          });
+        });
+      });
+    }
   }
 
   function mountMinimalSliders() {
@@ -1159,7 +1267,23 @@
     }
   }
 
-  function renderScene4() {
+  function updateModeSwitchGlider(instant = false) {
+    if (!els.modeSwitchGlider || !els.chartModeSwitch) return;
+    const activeTab = els.chartModeSwitch.querySelector(".mode-tab.is-active");
+    if (!activeTab || activeTab.offsetWidth === 0) return;
+
+    if (instant) {
+      els.modeSwitchGlider.style.transition = "none";
+    }
+    els.modeSwitchGlider.style.width = `${activeTab.offsetWidth}px`;
+    els.modeSwitchGlider.style.transform = `translateX(${activeTab.offsetLeft}px)`;
+    if (instant) {
+      void els.modeSwitchGlider.offsetWidth;
+      els.modeSwitchGlider.style.transition = "";
+    }
+  }
+
+  function renderScene4(animateModeChange = false, snapGlider = false) {
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     els.s4StrategyBadge.textContent = `Paso 4 de 6 · Estrategia: ${strat.name}`;
     els.autobalanceCheckbox.checked = state.autoBalance;
@@ -1170,13 +1294,24 @@
       tab.setAttribute("aria-selected", active ? "true" : "false");
     });
 
-    els.viewDonut.hidden = state.chartMode !== "donut";
-    els.viewBars.hidden = state.chartMode !== "bars";
+    const showBars = state.chartMode === "bars";
+    els.viewDonut.hidden = showBars;
+    els.viewBars.hidden = !showBars;
+
+    els.viewDonut.classList.remove("is-panel-entering");
+    els.viewBars.classList.remove("is-panel-entering");
+    if (animateModeChange) {
+      const activePanel = showBars ? els.viewBars : els.viewDonut;
+      void activePanel.offsetWidth;
+      activePanel.classList.add("is-panel-entering");
+    }
 
     renderChart();
-    renderEasyBars();
+    renderEasyBars(animateModeChange && showBars);
     updateSlidersInPlace();
     renderScene4LiveTip();
+
+    requestAnimationFrame(() => updateModeSwitchGlider(snapGlider));
   }
 
   // =========================================================================
@@ -1660,9 +1795,9 @@
 
   function renderCurrentScene(animate = false) {
     if (state.currentStep === 1) renderScene1();
-    if (state.currentStep === 2) renderScene2();
-    if (state.currentStep === 3) renderScene3();
-    if (state.currentStep === 4) renderScene4();
+    if (state.currentStep === 2) renderScene2(animate);
+    if (state.currentStep === 3) renderScene3(animate);
+    if (state.currentStep === 4) renderScene4(animate && state.chartMode === "bars", true);
     if (state.currentStep === 5) renderScene5(animate);
     if (state.currentStep === 6) renderScene6();
   }
@@ -1739,7 +1874,7 @@
       state.itemsTouched = false;
       scaleItemsToTargets();
       saveState();
-      renderScene3();
+      renderScene3(true);
     });
 
     els.btnS3Next.addEventListener("click", () => {
@@ -1751,10 +1886,18 @@
     // Escena 4
     els.chartModeSwitch.querySelectorAll(".mode-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
-        state.chartMode = tab.getAttribute("data-chart-mode");
+        const nextMode = tab.getAttribute("data-chart-mode");
+        if (nextMode === state.chartMode) return;
+        state.chartMode = nextMode;
         saveState();
-        renderScene4();
+        renderScene4(true, false);
       });
+    });
+
+    window.addEventListener("resize", () => {
+      if (state.currentStep === 4) {
+        updateModeSwitchGlider(true);
+      }
     });
 
     els.autobalanceCheckbox.addEventListener("change", (e) => {
