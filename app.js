@@ -104,7 +104,7 @@
       tabName: "Casa y Servicios",
       name: "Necesidades esenciales",
       description: "Vivienda, luz, agua, gas, internet, comida y transporte.",
-      color: "#0F766E",
+      color: "#0E6B5E",
       percent: 50,
       items: [
         { id: "n_home", name: "Vivienda / Renta", icon: "home", weight: 0.56, amount: 680 },
@@ -121,7 +121,7 @@
       tabName: "Gustos y Ocio",
       name: "Estilo de vida y deseos",
       description: "Salidas, suscripciones, hobbies y compras opcionales.",
-      color: "#D97706",
+      color: "#D94E2A",
       percent: 30,
       items: [
         { id: "w_food", name: "Salidas y restaurantes", icon: "utensils", weight: 0.5, amount: 360 },
@@ -134,7 +134,7 @@
       tabName: "Ahorro y Metas",
       name: "Ahorro, inversión y metas",
       description: "Fondo de emergencia, inversión o metas futuras.",
-      color: "#2563EB",
+      color: "#1D4ED8",
       percent: 20,
       items: [
         { id: "s_shield", name: "Fondo de emergencia", icon: "shield", weight: 0.5, amount: 240 },
@@ -164,6 +164,9 @@
 
   const els = {
     stepper: document.getElementById("stepper"),
+    dockGlider: document.getElementById("dock-glider"),
+    mastheadFolio: document.getElementById("masthead-folio"),
+    mastheadReadoutText: document.getElementById("masthead-readout-text"),
     progressFill: document.getElementById("progress-fill"),
     btnHomeBrand: document.getElementById("btn-home-brand"),
     btnReset: document.getElementById("btn-reset"),
@@ -198,6 +201,7 @@
     viewDonut: document.getElementById("view-donut"),
     viewBars: document.getElementById("view-bars"),
     autobalanceCheckbox: document.getElementById("autobalance-checkbox"),
+    donutBezelTicks: document.getElementById("donut-bezel-ticks"),
     donutSegments: document.getElementById("donut-segments"),
     centerLabel: document.getElementById("center-label"),
     centerAmount: document.getElementById("center-amount"),
@@ -261,6 +265,7 @@
         categories: parsed.categories.map((cat, idx) => ({
           ...DEFAULT_CATEGORIES[idx],
           ...cat,
+          color: DEFAULT_CATEGORIES[idx].color,
           percent: Math.max(0, Math.min(100, Math.round(Number(cat.percent) || 0))),
           items: Array.isArray(cat.items) ? cat.items : DEFAULT_CATEGORIES[idx].items,
         })),
@@ -559,7 +564,50 @@
     goToStep(nextStep, "forward");
   }
 
-  function renderStepper() {
+  function updateMasthead() {
+    if (els.mastheadFolio) {
+      els.mastheadFolio.textContent = `FOLIO 0${state.currentStep} / 06`;
+    }
+    if (els.mastheadReadoutText) {
+      const periodLabel = PERIOD_FACTORS[state.period].adjective.toUpperCase();
+      els.mastheadReadoutText.textContent = `${formatMoney(state.income)} · ${periodLabel}`;
+    }
+  }
+
+  function updateDockGlider(instant = false) {
+    if (!els.dockGlider || !els.stepper) return;
+    const activeBtn = els.stepper.querySelector(".step-item.is-active");
+    if (!activeBtn || activeBtn.offsetWidth === 0) return;
+
+    if (instant) {
+      els.dockGlider.style.transition = "none";
+    }
+    els.dockGlider.style.width = `${activeBtn.offsetWidth}px`;
+    els.dockGlider.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+    if (instant) {
+      void els.dockGlider.offsetWidth;
+      els.dockGlider.style.transition = "";
+    }
+  }
+
+  function buildDialTicksMarkup(cx, cy, count, rInner, rOuter, majorEvery) {
+    const lines = [];
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      const isMajor = i % majorEvery === 0;
+      const r1 = isMajor ? rInner - 3 : rInner;
+      const x1 = cx + Math.cos(angle) * r1;
+      const y1 = cy + Math.sin(angle) * r1;
+      const x2 = cx + Math.cos(angle) * rOuter;
+      const y2 = cy + Math.sin(angle) * rOuter;
+      lines.push(
+        `<line class="${isMajor ? "is-major" : ""}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke-width="${isMajor ? "1.6" : "1"}" />`
+      );
+    }
+    return lines.join("");
+  }
+
+  function renderStepper(instantGlider = false) {
     els.progressFill.style.width = `${(state.currentStep / 6) * 100}%`;
     els.stepper.querySelectorAll(".step-item").forEach((btn) => {
       const stepNum = Number(btn.getAttribute("data-step"));
@@ -573,6 +621,8 @@
       btn.classList.toggle("is-active", isActive);
       btn.classList.toggle("is-completed", isCompleted);
     });
+    updateMasthead();
+    requestAnimationFrame(() => updateDockGlider(instantGlider));
   }
 
   // =========================================================================
@@ -587,6 +637,11 @@
     if (document.activeElement !== els.incomeInput) {
       els.incomeInput.value = state.income;
     }
+
+    document.querySelectorAll(".pill-choice[data-income]").forEach((btn) => {
+      btn.classList.toggle("is-current", Number(btn.getAttribute("data-income")) === state.income);
+    });
+    updateMasthead();
 
     const perYear = PERIOD_FACTORS[state.period].perYear;
     const annualIncome = state.income * perYear;
@@ -609,10 +664,11 @@
   async function renderScene2(animateSwap = false) {
     if (!els.strategyGrid.querySelector(".strategy-card")) {
       els.strategyGrid.innerHTML = Object.values(STRATEGIES)
-        .map((s) => {
+        .map((s, idx) => {
           const selected = s.id === state.strategy;
           return `
             <button type="button" class="strategy-card ${selected ? "is-selected" : ""}" data-strategy="${s.id}" role="radio" aria-checked="${selected ? "true" : "false"}">
+              <span class="strategy-index">0${idx + 1}</span>
               <div class="strategy-card-main">
                 <strong>${escapeHtml(s.name)}</strong>
                 <span>${escapeHtml(s.tagline)}</span>
@@ -646,12 +702,12 @@
       savings: state.categories[2].percent,
     };
 
-    const r = 30;
+    const r = 28;
     const circ = 2 * Math.PI * r;
     const segData = [
-      { color: "#0F766E", pct: ringPercentages.needs },
-      { color: "#D97706", pct: ringPercentages.wants },
-      { color: "#2563EB", pct: ringPercentages.savings },
+      { color: "#0E6B5E", pct: ringPercentages.needs },
+      { color: "#D94E2A", pct: ringPercentages.wants },
+      { color: "#1D4ED8", pct: ringPercentages.savings },
     ];
     let offset = 0;
     const computedSegs = segData.map((seg, idx) => {
@@ -672,16 +728,18 @@
       const circles = computedSegs
         .map(
           (seg) =>
-            `<circle class="spotlight-ring-arc" data-seg-idx="${seg.idx}" cx="40" cy="40" r="${r}" fill="none" stroke="${seg.color}" stroke-width="11" stroke-dasharray="${seg.dashArray}" stroke-dashoffset="${seg.dashOffset}" />`
+            `<circle class="spotlight-ring-arc" data-seg-idx="${seg.idx}" cx="44" cy="44" r="${r}" fill="none" stroke="${seg.color}" stroke-width="10" stroke-dasharray="${seg.dashArray}" stroke-dashoffset="${seg.dashOffset}" />`
         )
         .join("");
+      const miniTicks = buildDialTicksMarkup(44, 44, 24, 37.5, 41, 6);
 
       els.strategySpotlight.innerHTML = `
         <div>
           <div class="spotlight-head">
             <div aria-hidden="true">
-              <svg class="spotlight-ring-svg" viewBox="0 0 80 80" width="76" height="76" style="transform: rotate(-90deg);">
-                <circle cx="40" cy="40" r="${r}" fill="none" stroke="#efece4" stroke-width="11" />
+              <svg class="spotlight-ring-svg" viewBox="0 0 88 88" width="84" height="84" style="transform: rotate(-90deg);">
+                <g class="donut-bezel-ticks">${miniTicks}</g>
+                <circle cx="44" cy="44" r="${r}" fill="none" stroke="#ece8df" stroke-width="10" />
                 ${circles}
               </svg>
             </div>
@@ -792,7 +850,7 @@
   }
 
   // =========================================================================
-  // Escena 3: Gastos Detallados (Luz, Agua, Electricidad...) + Termómetro + Top Barras
+  // Escena 3: Gastos Detallados (Luz, Agua, Electricidad...) + Regla + Top Barras
   // =========================================================================
 
   function renderScene3Thermometer() {
@@ -845,6 +903,9 @@
         <span class="thermo-badge ${badgeClass}">${badgeText}</span>
       </div>
       <div class="thermo-track" role="img" aria-label="Termómetro visual de gastos">${segmentsHtml}</div>
+      <div class="thermo-scale" aria-hidden="true">
+        <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
+      </div>
       <div class="thermo-legend">${legendHtml}</div>
     `;
   }
@@ -1266,7 +1327,10 @@
   }
 
   function mountChart() {
-    els.donutSegments.innerHTML = buildDonutMarkup(154, 44, 210);
+    if (els.donutBezelTicks) {
+      els.donutBezelTicks.innerHTML = buildDialTicksMarkup(210, 210, 60, 185, 195, 5);
+    }
+    els.donutSegments.innerHTML = buildDonutMarkup(146, 40, 210);
     els.donutSegments.querySelectorAll(".donut-segment").forEach((seg) => {
       const catId = seg.getAttribute("data-cat-id");
       seg.addEventListener("mouseenter", () => showChartHover(catId));
@@ -1279,7 +1343,7 @@
     if (!els.donutSegments.querySelector(".donut-segment")) {
       mountChart();
     }
-    const metrics = getDonutMetrics(154);
+    const metrics = getDonutMetrics(146);
     metrics.forEach(({ cat, dashArray, dashOffset }) => {
       const seg = els.donutSegments.querySelector(`.donut-segment[data-cat-id="${cat.id}"]`);
       if (!seg) return;
@@ -1685,7 +1749,7 @@
   function renderScene4(animateBarsFromZero = false, snapGlider = false) {
     resetContainerHeight(els.chartStageViewport, chartModeSwap);
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
-    els.s4StrategyBadge.textContent = `Paso 4 de 6 · Estrategia: ${strat.name}`;
+    els.s4StrategyBadge.textContent = `04 · Estrategia: ${strat.name}`;
     els.autobalanceCheckbox.checked = state.autoBalance;
 
     els.chartModeSwitch.querySelectorAll(".mode-tab").forEach((tab) => {
@@ -1910,12 +1974,13 @@
   function renderScene5(animateScore = false, fromScore = 0) {
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     const analysis = analyzeBudget();
-    const r = 46;
+    const r = 42;
     const circ = 2 * Math.PI * r;
     const initialScore = animateScore ? fromScore : analysis.score;
     const startOffset = circ * (1 - initialScore / 100);
     const targetOffset = circ * (1 - analysis.score / 100);
-    const ringColor = analysis.score >= 80 ? "#0F766E" : analysis.score >= 60 ? "#D97706" : "#BE123C";
+    const ringColor = analysis.score >= 80 ? "#0E6B5E" : analysis.score >= 60 ? "#D94E2A" : "#BE123C";
+    const gaugeTicks = buildDialTicksMarkup(59, 59, 28, 52, 56, 7);
 
     const emergencyText =
       analysis.periodsToEmergency !== null
@@ -1945,18 +2010,19 @@
     els.s5DiagnosisContent.innerHTML = `
       <div class="diagnosis-hero">
         <div class="score-ring-wrap">
-          <svg class="score-ring-svg" viewBox="0 0 112 112" width="112" height="112">
-            <circle cx="56" cy="56" r="${r}" fill="none" stroke="#efece4" stroke-width="10" />
+          <svg class="score-ring-svg" viewBox="0 0 118 118" width="118" height="118">
+            <g class="donut-bezel-ticks">${gaugeTicks}</g>
+            <circle cx="59" cy="59" r="${r}" fill="none" stroke="#ece8df" stroke-width="9" />
             <circle
               id="score-ring-arc"
               class="score-ring-arc"
-              cx="56"
-              cy="56"
+              cx="59"
+              cy="59"
               r="${r}"
               fill="none"
               stroke="${ringColor}"
-              stroke-width="10"
-              stroke-linecap="round"
+              stroke-width="9"
+              stroke-linecap="butt"
               stroke-dasharray="${circ.toFixed(2)}"
               stroke-dashoffset="${startOffset.toFixed(2)}"
             />
@@ -2286,6 +2352,7 @@
     });
 
     window.addEventListener("resize", () => {
+      updateDockGlider(true);
       if (state.currentStep === 4) {
         updateModeSwitchGlider(true);
       }
@@ -2330,7 +2397,7 @@
   }
 
   bindEvents();
-  renderStepper();
+  renderStepper(true);
   mountChart();
   mountMinimalSliders();
   goToStep(state.currentStep, "forward", true);

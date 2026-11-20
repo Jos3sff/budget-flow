@@ -3,75 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BudgetFlow — Presupuesto Personal Paso a Paso</title>
+  <title>BudgetFlow — Instrumento de Presupuesto Personal</title>
   <meta
     name="description"
-    content="Construye tu presupuesto personal paso a paso con BudgetFlow: detalla luz, agua, vivienda y gastos diarios, explora gráficos visuales fáciles de entender e imprime tu informe."
+    content="Construye tu presupuesto personal paso a paso con BudgetFlow: detalla luz, agua, vivienda y gastos diarios, explora gráficos visuales precisos e imprime tu folio financiero."
   />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   />
   <link
     rel="icon"
     type="image/svg+xml"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%230F766E' stroke-width='10' stroke-dasharray='82 164' stroke-dashoffset='0'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23D97706' stroke-width='10' stroke-dasharray='49 164' stroke-dashoffset='-82'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%232563EB' stroke-width='10' stroke-dasharray='33 164' stroke-dashoffset='-131'/%3E%3C/svg%3E"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23141517'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%230E6B5E' stroke-width='8' stroke-dasharray='63 126' stroke-dashoffset='0'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23D94E2A' stroke-width='8' stroke-dasharray='38 126' stroke-dashoffset='-63'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%231D4ED8' stroke-width='8' stroke-dasharray='25 126' stroke-dashoffset='-101'/%3E%3C/svg%3E"
   />
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <!-- Experiencia guiada (oculta al imprimir) -->
   <div class="experience-shell no-print" id="experience-shell">
-    <!-- Barra superior minimalista con 6 pasos desbloqueables -->
+    <!-- Cabecera editorial minimalista -->
     <header class="top-nav">
       <div class="top-nav-inner">
         <button type="button" class="brand-lockup" id="btn-home-brand" title="Volver al paso 1">
           <span class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 36 36" width="28" height="28">
-              <circle cx="18" cy="18" r="13" fill="none" stroke="#0F766E" stroke-width="5.5" stroke-dasharray="41 82" stroke-dashoffset="0" />
-              <circle cx="18" cy="18" r="13" fill="none" stroke="#D97706" stroke-width="5.5" stroke-dasharray="24 82" stroke-dashoffset="-41" />
-              <circle cx="18" cy="18" r="13" fill="none" stroke="#2563EB" stroke-width="5.5" stroke-dasharray="17 82" stroke-dashoffset="-65" />
+            <svg viewBox="0 0 36 36" width="24" height="24">
+              <circle cx="18" cy="18" r="12" fill="none" stroke="#0E6B5E" stroke-width="4.5" stroke-dasharray="38 76" stroke-dashoffset="0" />
+              <circle cx="18" cy="18" r="12" fill="none" stroke="#D94E2A" stroke-width="4.5" stroke-dasharray="23 76" stroke-dashoffset="-38" />
+              <circle cx="18" cy="18" r="12" fill="none" stroke="#1D4ED8" stroke-width="4.5" stroke-dasharray="15 76" stroke-dashoffset="-61" />
             </svg>
           </span>
-          <span class="brand-name">BudgetFlow</span>
+          <span class="brand-copy">
+            <span class="brand-name">BudgetFlow</span>
+            <span class="brand-folio" id="masthead-folio">FOLIO 01 / 06</span>
+          </span>
         </button>
 
-        <nav class="stepper" id="stepper" aria-label="Progreso del presupuesto">
-          <button type="button" class="step-item is-active is-unlocked" data-step="1">
-            <span class="step-num">1</span>
-            <span class="step-label">Ingreso</span>
-          </button>
-          <span class="step-connector" aria-hidden="true"></span>
-          <button type="button" class="step-item is-locked" data-step="2" disabled>
-            <span class="step-num">2</span>
-            <span class="step-label">Estrategia</span>
-          </button>
-          <span class="step-connector" aria-hidden="true"></span>
-          <button type="button" class="step-item is-locked" data-step="3" disabled>
-            <span class="step-num">3</span>
-            <span class="step-label">Tus gastos</span>
-          </button>
-          <span class="step-connector" aria-hidden="true"></span>
-          <button type="button" class="step-item is-locked" data-step="4" disabled>
-            <span class="step-num">4</span>
-            <span class="step-label">Gráficos</span>
-          </button>
-          <span class="step-connector" aria-hidden="true"></span>
-          <button type="button" class="step-item is-locked" data-step="5" disabled>
-            <span class="step-num">5</span>
-            <span class="step-label">Diagnóstico</span>
-          </button>
-          <span class="step-connector" aria-hidden="true"></span>
-          <button type="button" class="step-item is-locked" data-step="6" disabled>
-            <span class="step-num">6</span>
-            <span class="step-label">Documento</span>
-          </button>
-        </nav>
+        <div class="masthead-telemetry" id="masthead-readout" aria-live="polite">
+          <span class="telemetry-dot" aria-hidden="true"></span>
+          <span id="masthead-readout-text">$2,400 · MENSUAL</span>
+        </div>
 
         <button type="button" class="btn-icon-reset" id="btn-reset" title="Reiniciar experiencia">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
             <path d="M3 3v5h5" />
           </svg>
@@ -88,13 +64,22 @@
       <!-- ESCENA 1: Punto de Partida -->
       <section class="scene is-active" data-scene="1" aria-labelledby="s1-title">
         <div class="scene-inner scene-narrow">
-          <span class="scene-eyebrow">Paso 1 de 6 · Punto de partida</span>
-          <h1 id="s1-title" class="scene-title">¿Con cuánto cuentas en este periodo?</h1>
-          <p class="scene-lead">
-            Ingresa tu dinero disponible después de impuestos. Todo tu presupuesto se construirá alrededor de esta cifra.
-          </p>
+          <div class="scene-header-block">
+            <span class="scene-eyebrow">01 · Punto de partida</span>
+            <h1 id="s1-title" class="scene-title">¿Con cuánto cuentas en este <em>periodo</em>?</h1>
+            <p class="scene-lead">
+              Ingresa tu dinero disponible después de impuestos. Todo el instrumento se calibrará alrededor de esta cifra.
+            </p>
+          </div>
 
           <div class="hero-income-card">
+            <span class="corner-mark tl" aria-hidden="true"></span>
+            <span class="corner-mark tr" aria-hidden="true"></span>
+            <span class="corner-mark bl" aria-hidden="true"></span>
+            <span class="corner-mark br" aria-hidden="true"></span>
+
+            <span class="dial-caption">INGRESO NETO DISPONIBLE</span>
+
             <div class="big-income-row">
               <span class="big-currency" id="s1-currency-symbol">$</span>
               <input
@@ -155,11 +140,13 @@
       <!-- ESCENA 2: Estrategia -->
       <section class="scene" data-scene="2" aria-labelledby="s2-title" hidden>
         <div class="scene-inner">
-          <span class="scene-eyebrow">Paso 2 de 6 · Tu estrategia</span>
-          <h2 id="s2-title" class="scene-title">¿Cómo quieres repartir tu ingreso?</h2>
-          <p class="scene-lead">
-            Elige una meta de referencia. Luego podrás ajustarla con tus gastos reales de luz, agua, comida y más.
-          </p>
+          <div class="scene-header-block">
+            <span class="scene-eyebrow">02 · Arquitectura de reparto</span>
+            <h2 id="s2-title" class="scene-title">¿Cómo quieres repartir tu <em>ingreso</em>?</h2>
+            <p class="scene-lead">
+              Elige un plano de referencia. En el siguiente paso lo ajustarás con tus pagos reales de luz, agua, comida y más.
+            </p>
+          </div>
 
           <div class="strategy-showcase">
             <div class="strategy-grid" id="strategy-grid" role="radiogroup" aria-label="Estrategias de presupuesto"></div>
@@ -176,23 +163,23 @@
         </div>
       </section>
 
-      <!-- ESCENA 3: Apartado Detallado de Gastos (Luz, Agua, Electricidad, Vivienda...) -->
+      <!-- ESCENA 3: Apartado Detallado de Gastos -->
       <section class="scene" data-scene="3" aria-labelledby="s3-title" hidden>
         <div class="scene-inner">
           <div class="scene-compact-head">
             <div>
-              <span class="scene-eyebrow">Paso 3 de 6 · Tus gastos del día a día</span>
-              <h2 id="s3-title" class="scene-title-sm">¿Cuánto gastas en cada cosa?</h2>
+              <span class="scene-eyebrow">03 · Mesa de desglose diario</span>
+              <h2 id="s3-title" class="scene-title-sm">¿Cuánto gastas en cada <em>cosa</em>?</h2>
             </div>
             <button type="button" class="btn btn-secondary btn-sm" id="btn-sync-strategy" title="Ajustar ejemplos según tu estrategia elegida">
               Usar montos sugeridos
             </button>
           </div>
 
-          <!-- Termómetro visual súper fácil de entender -->
+          <!-- Regla proporcional visual -->
           <div class="thermometer-card" id="s3-thermometer" aria-live="polite"></div>
 
-          <!-- Tabs limpios de sección + Lista detallada + Gráfico visual vivo -->
+          <!-- Carpetas de sección + Lista detallada + Mapa de Peso -->
           <div class="expenses-workspace">
             <div class="expenses-left-col">
               <div class="section-tabs" id="s3-section-tabs" role="tablist" aria-label="Secciones de gasto"></div>
@@ -205,20 +192,20 @@
           <div class="scene-nav-actions">
             <button type="button" class="btn btn-ghost" data-goto="2">← Cambiar estrategia</button>
             <button type="button" class="btn btn-primary btn-lg" id="btn-s3-next">
-              <span>Ver gráficos grandes</span>
+              <span>Abrir instrumento visual</span>
               <span class="btn-arrow" aria-hidden="true">→</span>
             </button>
           </div>
         </div>
       </section>
 
-      <!-- ESCENA 4: Gráficos Grandes Interactivos (Anillo + Comparativa Fácil) -->
+      <!-- ESCENA 4: Gráficos Grandes Interactivos -->
       <section class="scene" data-scene="4" aria-labelledby="s4-title" hidden>
         <div class="scene-inner">
           <div class="scene-compact-head">
             <div>
-              <span class="scene-eyebrow" id="s4-strategy-badge">Paso 4 de 6 · Vista visual interactiva</span>
-              <h2 id="s4-title" class="scene-title-sm">Así se ve tu presupuesto completo</h2>
+              <span class="scene-eyebrow" id="s4-strategy-badge">04 · Instrumento visual interactivo</span>
+              <h2 id="s4-title" class="scene-title-sm">Así se ve tu presupuesto <em>completo</em></h2>
             </div>
 
             <div class="chart-mode-switch" role="tablist" aria-label="Tipo de gráfico">
@@ -230,7 +217,7 @@
 
           <div class="centerpiece-stage">
             <div class="chart-stage-viewport" id="chart-stage-viewport">
-              <!-- Vista A: Gráfico Circular Grande -->
+              <!-- Vista A: Dial Circular Calibrado -->
               <div class="chart-view-panel" id="view-donut">
                 <div class="chart-wrapper">
                   <svg
@@ -242,7 +229,8 @@
                   >
                     <title id="donut-title">Gráfico circular interactivo del presupuesto</title>
                     <desc id="donut-desc">Muestra la proporción y monto asignado a necesidades, deseos y ahorro.</desc>
-                    <circle class="donut-track" cx="210" cy="210" r="154" />
+                    <g id="donut-bezel-ticks" class="donut-bezel-ticks" aria-hidden="true"></g>
+                    <circle class="donut-track" cx="210" cy="210" r="146" />
                     <g id="donut-segments"></g>
                   </svg>
 
@@ -257,13 +245,13 @@
                 </div>
               </div>
 
-              <!-- Vista B: Gráfico de Barras Comparativo Súper Claro ("Tu meta vs Lo tuyo") -->
+              <!-- Vista B: Barras Comparativas Súper Claras -->
               <div class="chart-view-panel" id="view-bars" hidden></div>
             </div>
 
-            <!-- Controles finos sincronizados -->
+            <!-- Consola de faders sincronizados -->
             <div class="sliders-head-bar">
-              <span>Ajuste rápido por bloque</span>
+              <span>CALIBRACIÓN RÁPIDA POR BLOQUE</span>
               <label class="autobalance-pill" for="autobalance-checkbox">
                 <input type="checkbox" id="autobalance-checkbox" checked />
                 <span class="toggle-track" aria-hidden="true"></span>
@@ -289,18 +277,20 @@
       <!-- ESCENA 5: Radiografía & Qué Mejorar -->
       <section class="scene" data-scene="5" aria-labelledby="s5-title" hidden>
         <div class="scene-inner">
-          <span class="scene-eyebrow">Paso 5 de 6 · Diagnóstico inteligente</span>
-          <h2 id="s5-title" class="scene-title">Tu radiografía financiera</h2>
-          <p class="scene-lead">
-            Analizamos tus gastos reales, el porqué de tu estrategia y simulamos mejoras en un clic.
-          </p>
+          <div class="scene-header-block">
+            <span class="scene-eyebrow">05 · Auditoría inteligente</span>
+            <h2 id="s5-title" class="scene-title">Tu radiografía <em>financiera</em></h2>
+            <p class="scene-lead">
+              Analizamos tus gastos reales, el porqué de tu estrategia y simulamos mejoras en un clic.
+            </p>
+          </div>
 
           <div class="diagnosis-layout" id="s5-diagnosis-content"></div>
 
           <div class="scene-nav-actions">
             <button type="button" class="btn btn-ghost" data-goto="4">← Ajustar gráficos</button>
             <button type="button" class="btn btn-primary btn-lg" id="btn-s5-next">
-              <span>Preparar documento imprimible</span>
+              <span>Preparar folio imprimible</span>
               <span class="btn-arrow" aria-hidden="true">→</span>
             </button>
           </div>
@@ -312,8 +302,8 @@
         <div class="scene-inner">
           <div class="doc-scene-toolbar">
             <div>
-              <span class="scene-eyebrow">Paso 6 de 6 · Tu reporte listo</span>
-              <h2 id="s6-title" class="scene-title-sm">Documento personalizado</h2>
+              <span class="scene-eyebrow">06 · Edición imprimible</span>
+              <h2 id="s6-title" class="scene-title-sm">Tu folio <em>personalizado</em></h2>
             </div>
 
             <div class="doc-toolbar-controls">
@@ -326,12 +316,12 @@
                 aria-label="Nombre para el reporte"
               />
               <button type="button" class="btn btn-primary" id="btn-print-now">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <polyline points="6 9 6 2 18 2 18 9" />
                   <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                   <rect x="6" y="14" width="12" height="8" />
                 </svg>
-                <span>Imprimir / Guardar PDF</span>
+                <span>Imprimir / PDF</span>
               </button>
             </div>
           </div>
@@ -345,6 +335,37 @@
         </div>
       </section>
     </main>
+
+    <!-- Dock Flotante Táctil Inferior (Instrument Rail) -->
+    <div class="instrument-dock-wrap">
+      <nav class="stepper instrument-dock" id="stepper" aria-label="Progreso del presupuesto">
+        <span class="dock-glider" id="dock-glider" aria-hidden="true"></span>
+        <button type="button" class="step-item is-active is-unlocked" data-step="1">
+          <span class="step-num">01</span>
+          <span class="step-label">Ingreso</span>
+        </button>
+        <button type="button" class="step-item is-locked" data-step="2" disabled>
+          <span class="step-num">02</span>
+          <span class="step-label">Plan</span>
+        </button>
+        <button type="button" class="step-item is-locked" data-step="3" disabled>
+          <span class="step-num">03</span>
+          <span class="step-label">Gastos</span>
+        </button>
+        <button type="button" class="step-item is-locked" data-step="4" disabled>
+          <span class="step-num">04</span>
+          <span class="step-label">Gráficos</span>
+        </button>
+        <button type="button" class="step-item is-locked" data-step="5" disabled>
+          <span class="step-num">05</span>
+          <span class="step-label">Salud</span>
+        </button>
+        <button type="button" class="step-item is-locked" data-step="6" disabled>
+          <span class="step-num">06</span>
+          <span class="step-label">Folio</span>
+        </button>
+      </nav>
+    </div>
   </div>
 
   <!-- Contenedor exclusivo de impresión -->
