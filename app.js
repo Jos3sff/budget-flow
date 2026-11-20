@@ -104,7 +104,7 @@
       tabName: "Casa y Servicios",
       name: "Necesidades esenciales",
       description: "Vivienda, luz, agua, gas, internet, comida y transporte.",
-      color: "#0E6B5E",
+      color: "#2DD4A7",
       percent: 50,
       items: [
         { id: "n_home", name: "Vivienda / Renta", icon: "home", weight: 0.56, amount: 680 },
@@ -121,7 +121,7 @@
       tabName: "Gustos y Ocio",
       name: "Estilo de vida y deseos",
       description: "Salidas, suscripciones, hobbies y compras opcionales.",
-      color: "#D94E2A",
+      color: "#F5A623",
       percent: 30,
       items: [
         { id: "w_food", name: "Salidas y restaurantes", icon: "utensils", weight: 0.5, amount: 360 },
@@ -134,7 +134,7 @@
       tabName: "Ahorro y Metas",
       name: "Ahorro, inversión y metas",
       description: "Fondo de emergencia, inversión o metas futuras.",
-      color: "#1D4ED8",
+      color: "#4F9CF9",
       percent: 20,
       items: [
         { id: "s_shield", name: "Fondo de emergencia", icon: "shield", weight: 0.5, amount: 240 },
@@ -164,19 +164,27 @@
 
   const els = {
     stepper: document.getElementById("stepper"),
-    dockGlider: document.getElementById("dock-glider"),
+    railGlider: document.getElementById("rail-glider"),
     mastheadFolio: document.getElementById("masthead-folio"),
-    mastheadReadoutText: document.getElementById("masthead-readout-text"),
+    railProgressPct: document.getElementById("rail-progress-pct"),
+    railMiniSegments: document.getElementById("rail-mini-segments"),
+    railMiniPeriod: document.getElementById("rail-mini-period"),
+    railMiniAmount: document.getElementById("rail-mini-amount"),
+    railMiniStrat: document.getElementById("rail-mini-strat"),
     progressFill: document.getElementById("progress-fill"),
     btnHomeBrand: document.getElementById("btn-home-brand"),
     btnReset: document.getElementById("btn-reset"),
+    btnResetMobile: document.getElementById("btn-reset-mobile"),
     scenes: document.querySelectorAll(".scene"),
 
     // Escena 1
     incomeInput: document.getElementById("income-input"),
+    btnIncomeMinus: document.getElementById("btn-income-minus"),
+    btnIncomePlus: document.getElementById("btn-income-plus"),
     s1CurrencySymbol: document.getElementById("s1-currency-symbol"),
-    periodSelect: document.getElementById("period-select"),
+    periodSegmented: document.getElementById("period-segmented"),
     currencySelect: document.getElementById("currency-select"),
+    s1PreviewStrip: document.getElementById("s1-preview-strip"),
     s1Callout: document.getElementById("s1-callout"),
     btnS1Next: document.getElementById("btn-s1-next"),
 
@@ -564,29 +572,69 @@
     goToStep(nextStep, "forward");
   }
 
-  function updateMasthead() {
+  function renderRailPulse() {
     if (els.mastheadFolio) {
-      els.mastheadFolio.textContent = `FOLIO 0${state.currentStep} / 06`;
+      els.mastheadFolio.textContent = `Paso 0${state.currentStep} / 06`;
     }
-    if (els.mastheadReadoutText) {
-      const periodLabel = PERIOD_FACTORS[state.period].adjective.toUpperCase();
-      els.mastheadReadoutText.textContent = `${formatMoney(state.income)} · ${periodLabel}`;
+    if (els.railProgressPct) {
+      els.railProgressPct.textContent = `${Math.round((state.currentStep / 6) * 100)}%`;
+    }
+    if (els.railMiniPeriod) {
+      els.railMiniPeriod.textContent = `Ingreso ${PERIOD_FACTORS[state.period].label}`;
+    }
+    if (els.railMiniAmount) {
+      els.railMiniAmount.textContent = formatMoney(state.income);
+    }
+    if (els.railMiniStrat) {
+      const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
+      els.railMiniStrat.textContent = strat.short === "Libre" ? "A tu medida" : strat.short;
+    }
+    if (els.railMiniSegments) {
+      const r = 23;
+      const metrics = getDonutMetrics(r);
+      const existingArcs = els.railMiniSegments.querySelectorAll(".rail-mini-arc");
+      if (existingArcs.length !== metrics.length) {
+        els.railMiniSegments.innerHTML = metrics
+          .map(
+            ({ cat, dashArray, dashOffset }) =>
+              `<circle class="rail-mini-arc" data-cat-id="${cat.id}" cx="32" cy="32" r="${r}" fill="none" stroke="${cat.color}" stroke-width="7" stroke-dasharray="${dashArray}" stroke-dashoffset="${dashOffset}" />`
+          )
+          .join("");
+      } else {
+        metrics.forEach(({ cat, dashArray, dashOffset }) => {
+          const arc = els.railMiniSegments.querySelector(`.rail-mini-arc[data-cat-id="${cat.id}"]`);
+          if (arc) {
+            arc.setAttribute("stroke", cat.color);
+            arc.setAttribute("stroke-dasharray", dashArray);
+            arc.setAttribute("stroke-dashoffset", dashOffset);
+          }
+        });
+      }
     }
   }
 
-  function updateDockGlider(instant = false) {
-    if (!els.dockGlider || !els.stepper) return;
+  function updateRailGlider(instant = false) {
+    if (!els.railGlider || !els.stepper) return;
     const activeBtn = els.stepper.querySelector(".step-item.is-active");
-    if (!activeBtn || activeBtn.offsetWidth === 0) return;
+    if (!activeBtn || activeBtn.offsetWidth === 0 || activeBtn.offsetHeight === 0) return;
+
+    const isHorizontal = getComputedStyle(els.stepper).flexDirection === "row";
 
     if (instant) {
-      els.dockGlider.style.transition = "none";
+      els.railGlider.style.transition = "none";
     }
-    els.dockGlider.style.width = `${activeBtn.offsetWidth}px`;
-    els.dockGlider.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+    if (isHorizontal) {
+      els.railGlider.style.width = `${activeBtn.offsetWidth}px`;
+      els.railGlider.style.height = `${activeBtn.offsetHeight}px`;
+      els.railGlider.style.transform = `translate3d(${activeBtn.offsetLeft}px, 0px, 0)`;
+    } else {
+      els.railGlider.style.width = `${activeBtn.offsetWidth}px`;
+      els.railGlider.style.height = `${activeBtn.offsetHeight}px`;
+      els.railGlider.style.transform = `translate3d(0px, ${activeBtn.offsetTop}px, 0)`;
+    }
     if (instant) {
-      void els.dockGlider.offsetWidth;
-      els.dockGlider.style.transition = "";
+      void els.railGlider.offsetWidth;
+      els.railGlider.style.transition = "";
     }
   }
 
@@ -621,8 +669,8 @@
       btn.classList.toggle("is-active", isActive);
       btn.classList.toggle("is-completed", isCompleted);
     });
-    updateMasthead();
-    requestAnimationFrame(() => updateDockGlider(instantGlider));
+    renderRailPulse();
+    requestAnimationFrame(() => updateRailGlider(instantGlider));
   }
 
   // =========================================================================
@@ -632,16 +680,50 @@
   function renderScene1() {
     const cur = CURRENCIES[state.currency] || CURRENCIES.USD;
     els.s1CurrencySymbol.textContent = cur.symbol;
-    els.periodSelect.value = state.period;
     els.currencySelect.value = state.currency;
     if (document.activeElement !== els.incomeInput) {
       els.incomeInput.value = state.income;
     }
 
+    if (els.periodSegmented) {
+      els.periodSegmented.querySelectorAll(".period-seg-btn").forEach((btn) => {
+        const active = btn.getAttribute("data-period") === state.period;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-checked", active ? "true" : "false");
+      });
+    }
+
     document.querySelectorAll(".pill-choice[data-income]").forEach((btn) => {
-      btn.classList.toggle("is-current", Number(btn.getAttribute("data-income")) === state.income);
+      const val = Number(btn.getAttribute("data-income"));
+      btn.textContent = `${cur.symbol}${val.toLocaleString("es-MX")}`;
+      btn.classList.toggle("is-current", val === state.income);
     });
-    updateMasthead();
+
+    // Vista previa instantánea de los 3 pilares en Paso 1
+    if (els.s1PreviewStrip) {
+      const segsHtml = state.categories
+        .map((cat) => `<span class="s1-preview-seg" style="width:${cat.percent}%; background:${cat.color};"></span>`)
+        .join("");
+      const colsHtml = state.categories
+        .map(
+          (cat) => `
+          <div class="s1-preview-item">
+            <span class="s1-preview-label">
+              <span class="thermo-dot" style="background:${cat.color}"></span>
+              <span>${escapeHtml(cat.tabName)} (${cat.percent}%)</span>
+            </span>
+            <strong>${formatMoney(getCategoryAmount(cat))}</strong>
+          </div>
+        `
+        )
+        .join("");
+      els.s1PreviewStrip.innerHTML = `
+        <div class="s1-preview-bar" aria-hidden="true">${segsHtml}</div>
+        <div class="s1-preview-cols">${colsHtml}</div>
+      `;
+    }
+
+    renderRailPulse();
 
     const perYear = PERIOD_FACTORS[state.period].perYear;
     const annualIncome = state.income * perYear;
@@ -666,14 +748,22 @@
       els.strategyGrid.innerHTML = Object.values(STRATEGIES)
         .map((s, idx) => {
           const selected = s.id === state.strategy;
+          const ratios = s.targets || { needs: 50, wants: 30, savings: 20 };
           return `
             <button type="button" class="strategy-card ${selected ? "is-selected" : ""}" data-strategy="${s.id}" role="radio" aria-checked="${selected ? "true" : "false"}">
-              <span class="strategy-index">0${idx + 1}</span>
-              <div class="strategy-card-main">
-                <strong>${escapeHtml(s.name)}</strong>
-                <span>${escapeHtml(s.tagline)}</span>
+              <div class="strategy-card-top">
+                <span class="strategy-index">0${idx + 1}</span>
+                <div class="strategy-card-main">
+                  <strong>${escapeHtml(s.name)}</strong>
+                  <span>${escapeHtml(s.tagline)}</span>
+                </div>
+                <span class="strategy-ratio-dots">${escapeHtml(s.short)}</span>
               </div>
-              <span class="strategy-ratio-dots">${escapeHtml(s.short)}</span>
+              <div class="strategy-mini-bar" aria-hidden="true">
+                <span style="width:${ratios.needs}%; background:#2DD4A7"></span>
+                <span style="width:${ratios.wants}%; background:#F5A623"></span>
+                <span style="width:${ratios.savings}%; background:#4F9CF9"></span>
+              </div>
             </button>
           `;
         })
@@ -695,6 +785,8 @@
       });
     }
 
+    renderRailPulse();
+
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     const ringPercentages = strat.targets || {
       needs: state.categories[0].percent,
@@ -705,9 +797,9 @@
     const r = 28;
     const circ = 2 * Math.PI * r;
     const segData = [
-      { color: "#0E6B5E", pct: ringPercentages.needs },
-      { color: "#D94E2A", pct: ringPercentages.wants },
-      { color: "#1D4ED8", pct: ringPercentages.savings },
+      { color: "#2DD4A7", pct: ringPercentages.needs },
+      { color: "#F5A623", pct: ringPercentages.wants },
+      { color: "#4F9CF9", pct: ringPercentages.savings },
     ];
     let offset = 0;
     const computedSegs = segData.map((seg, idx) => {
@@ -739,7 +831,7 @@
             <div aria-hidden="true">
               <svg class="spotlight-ring-svg" viewBox="0 0 88 88" width="84" height="84" style="transform: rotate(-90deg);">
                 <g class="donut-bezel-ticks">${miniTicks}</g>
-                <circle cx="44" cy="44" r="${r}" fill="none" stroke="#ece8df" stroke-width="10" />
+                <circle cx="44" cy="44" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
                 ${circles}
               </svg>
             </div>
@@ -910,7 +1002,23 @@
     `;
   }
 
-  function renderScene3Tabs() {
+  function updateS3TabGlider(instant = false) {
+    const glider = els.s3SectionTabs?.querySelector(".s3-tab-glider");
+    const activeTab = els.s3SectionTabs?.querySelector(".section-tab.is-active");
+    if (!glider || !activeTab || activeTab.offsetWidth === 0) return;
+
+    if (instant) {
+      glider.style.transition = "none";
+    }
+    glider.style.width = `${activeTab.offsetWidth}px`;
+    glider.style.transform = `translateX(${activeTab.offsetLeft}px)`;
+    if (instant) {
+      void glider.offsetWidth;
+      glider.style.transition = "";
+    }
+  }
+
+  function renderScene3Tabs(instantGlider = false) {
     const existingTabs = els.s3SectionTabs.querySelectorAll(".section-tab");
     if (existingTabs.length === state.categories.length) {
       state.categories.forEach((cat) => {
@@ -922,10 +1030,11 @@
         const amountEl = btn.querySelector("strong");
         if (amountEl) amountEl.textContent = formatMoney(getItemsSum(cat));
       });
+      requestAnimationFrame(() => updateS3TabGlider(instantGlider));
       return;
     }
 
-    els.s3SectionTabs.innerHTML = state.categories
+    const tabsHtml = state.categories
       .map((cat) => {
         const active = cat.id === state.activeExpenseTab;
         const sum = getItemsSum(cat);
@@ -948,11 +1057,15 @@
       })
       .join("");
 
+    els.s3SectionTabs.innerHTML = `<span class="s3-tab-glider" aria-hidden="true"></span>${tabsHtml}`;
+
     els.s3SectionTabs.querySelectorAll(".section-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
         switchExpenseTab(tab.getAttribute("data-tab-id"));
       });
     });
+
+    requestAnimationFrame(() => updateS3TabGlider(true));
   }
 
   async function switchExpenseTab(nextTabId) {
@@ -1129,6 +1242,7 @@
         renderScene3Thermometer();
         renderScene3Tabs();
         renderScene3VisualPanel();
+        renderRailPulse();
       };
 
       amountInput.addEventListener("input", (e) => updateItemAmount(e.target.value, "input"));
@@ -1143,6 +1257,7 @@
         renderScene3Tabs();
         mountScene3Items(false);
         renderScene3VisualPanel();
+        renderRailPulse();
       });
     });
 
@@ -1766,6 +1881,7 @@
     renderEasyBars(animateBarsFromZero && showBars);
     updateSlidersInPlace();
     renderScene4LiveTip();
+    renderRailPulse();
 
     requestAnimationFrame(() => updateModeSwitchGlider(snapGlider));
   }
@@ -1972,6 +2088,7 @@
   }
 
   function renderScene5(animateScore = false, fromScore = 0) {
+    renderRailPulse();
     const strat = STRATEGIES[state.strategy] || STRATEGIES.custom;
     const analysis = analyzeBudget();
     const r = 42;
@@ -1979,7 +2096,7 @@
     const initialScore = animateScore ? fromScore : analysis.score;
     const startOffset = circ * (1 - initialScore / 100);
     const targetOffset = circ * (1 - analysis.score / 100);
-    const ringColor = analysis.score >= 80 ? "#0E6B5E" : analysis.score >= 60 ? "#D94E2A" : "#BE123C";
+    const ringColor = analysis.score >= 80 ? "#2DD4A7" : analysis.score >= 60 ? "#F5A623" : "#FB7185";
     const gaugeTicks = buildDialTicksMarkup(59, 59, 28, 52, 56, 7);
 
     const emergencyText =
@@ -2012,7 +2129,7 @@
         <div class="score-ring-wrap">
           <svg class="score-ring-svg" viewBox="0 0 118 118" width="118" height="118">
             <g class="donut-bezel-ticks">${gaugeTicks}</g>
-            <circle cx="59" cy="59" r="${r}" fill="none" stroke="#ece8df" stroke-width="9" />
+            <circle cx="59" cy="59" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="9" />
             <circle
               id="score-ring-arc"
               class="score-ring-arc"
@@ -2280,28 +2397,47 @@
     });
 
     // Escena 1
-    els.incomeInput.addEventListener("input", (e) => {
-      state.income = Math.max(0, Number(e.target.value) || 0);
+    const applyIncomeChange = (nextIncome) => {
+      state.income = Math.max(0, Math.round(Number(nextIncome) || 0));
       if (!state.itemsTouched) scaleItemsToTargets();
       saveState();
       renderScene1();
+    };
+
+    els.incomeInput.addEventListener("input", (e) => {
+      applyIncomeChange(e.target.value);
     });
+
+    if (els.btnIncomeMinus) {
+      els.btnIncomeMinus.addEventListener("click", () => {
+        applyIncomeChange(Math.max(0, state.income - 100));
+        els.incomeInput.value = state.income;
+      });
+    }
+
+    if (els.btnIncomePlus) {
+      els.btnIncomePlus.addEventListener("click", () => {
+        applyIncomeChange(state.income + 100);
+        els.incomeInput.value = state.income;
+      });
+    }
 
     document.querySelectorAll(".pill-choice[data-income]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        state.income = Number(btn.getAttribute("data-income"));
+        applyIncomeChange(btn.getAttribute("data-income"));
         els.incomeInput.value = state.income;
-        if (!state.itemsTouched) scaleItemsToTargets();
-        saveState();
-        renderScene1();
       });
     });
 
-    els.periodSelect.addEventListener("change", (e) => {
-      state.period = e.target.value;
-      saveState();
-      renderScene1();
-    });
+    if (els.periodSegmented) {
+      els.periodSegmented.querySelectorAll(".period-seg-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.period = btn.getAttribute("data-period");
+          saveState();
+          renderScene1();
+        });
+      });
+    }
 
     els.currencySelect.addEventListener("change", (e) => {
       state.currency = e.target.value;
@@ -2312,7 +2448,7 @@
     els.btnS1Next.addEventListener("click", () => {
       if (state.income <= 0) {
         els.incomeInput.focus();
-        els.s1Callout.innerHTML = `<strong style="color:#be123c;">Ingresa un monto mayor a cero</strong> para continuar al siguiente paso.`;
+        els.s1Callout.innerHTML = `<strong style="color:#fb7185;">Ingresa un monto mayor a cero</strong> para continuar al siguiente paso.`;
         return;
       }
       unlockAndGo(2);
@@ -2352,7 +2488,10 @@
     });
 
     window.addEventListener("resize", () => {
-      updateDockGlider(true);
+      updateRailGlider(true);
+      if (state.currentStep === 3) {
+        updateS3TabGlider(true);
+      }
       if (state.currentStep === 4) {
         updateModeSwitchGlider(true);
       }
@@ -2385,15 +2524,19 @@
       window.print();
     });
 
-    // Reset
-    els.btnReset.addEventListener("click", () => {
+    // Reset (desktop & mobile)
+    const handleReset = () => {
       state = cloneDefaults();
       focusedCategoryId = null;
       saveState();
       mountChart();
       mountMinimalSliders();
       goToStep(1, "backward");
-    });
+    };
+    els.btnReset.addEventListener("click", handleReset);
+    if (els.btnResetMobile) {
+      els.btnResetMobile.addEventListener("click", handleReset);
+    }
   }
 
   bindEvents();
